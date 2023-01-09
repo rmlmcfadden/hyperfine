@@ -47,6 +47,30 @@ def modified_beta_2(
     ) * modified_beta_dist(z, alpha_2, beta_2, z_max_2)
 
 
+def modified_beta_mean(alpha: float, beta: float, z_max: float) -> float:
+    """
+    Mean of the modified beta distribution
+    """
+    return z_max * alpha / (alpha + beta)
+
+
+def modified_beta_2_mean(
+    alpha_1: float,
+    beta_1: float,
+    z_max_1: float,
+    fraction_1: float,
+    alpha_2: float,
+    beta_2: float,
+    z_max_2: float,
+) -> float:
+    """
+    Mean of the modified beta distribution 2
+    """
+    return fraction_1 * modified_beta_mean(alpha_1, beta_1, z_max_1) + (
+        1.0 - fraction_1
+    ) * modified_beta_mean(alpha_2, beta_2, z_max_2)
+
+
 # muon gyromagnetic ratio in μs^-1 G^-1 (as defined in musrfit)
 gamma_mu = (
     2.0

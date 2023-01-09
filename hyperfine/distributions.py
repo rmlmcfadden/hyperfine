@@ -1,5 +1,5 @@
 import numpy as np
-from scipy import special
+from scipy import constants, special
 
 
 def modified_beta(
@@ -51,8 +51,8 @@ def modified_beta_2(
 gamma_mu = (
     2.0
     * np.abs(
-        physical_constants["muon mag. mom."][0]
-        / physical_constants["reduced Planck constant"][0]
+        constants.physical_constants["muon mag. mom."][0]
+        / constants.physical_constants["reduced Planck constant"][0]
     )
     * 1e-4  # 1/T to 1/G
     * 1e-6  # 1/s to 1/us

@@ -92,7 +92,7 @@ class DepthAveragingCalculator:
         z_max_2: float,
     ) -> float:
         return distributions.modified_beta_2(
-            z, alpha_1, beta_1, z_max_1, fraction_1, alpha_2, beta_2
+            z, alpha_1, beta_1, z_max_1, fraction_1, alpha_2, beta_2, z_max_2
         )
 
     # convenience function

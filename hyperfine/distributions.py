@@ -42,9 +42,9 @@ def modified_beta_2(
     """
     Sum of two modified beta distributions.
     """
-    return fraction_1 * modified_beta_dist(z, alpha_1, beta_1, z_max_1) + (
+    return fraction_1 * modified_beta(z, alpha_1, beta_1, z_max_1) + (
         1.0 - fraction_1
-    ) * modified_beta_dist(z, alpha_2, beta_2, z_max_2)
+    ) * modified_beta(z, alpha_2, beta_2, z_max_2)
 
 
 def modified_beta_mean(alpha: float, beta: float, z_max: float) -> float:

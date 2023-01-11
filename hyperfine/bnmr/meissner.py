@@ -167,6 +167,9 @@ class DepthAveragingCalculator:
         critical_field: float,
         critical_temperature_0T: float,
     ) -> float:
+        """
+        Inverted version of Tuyn's law
+        """
         return np.piecewise(
             applied_field,
             [

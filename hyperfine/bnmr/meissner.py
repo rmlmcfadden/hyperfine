@@ -160,7 +160,6 @@ class DepthAveragingCalculator:
                 lambda x: np.inf,
             ],
         )
-
     def critical_temperature(
         self,
         applied_field: float,
@@ -168,7 +167,29 @@ class DepthAveragingCalculator:
         critical_temperature_0T: float,
     ) -> float:
         """
-        Inverted version of Tuyn's law
+        Inverted version of Tuyn's law (for Bc1 or Bc)
+        """
+        return np.piecewise(
+            applied_field,
+            [
+                applied_field < critical_field,
+                applied_field >= critical_field,
+            ],
+            [
+                lambda x: critical_temperature_0T
+                * np.sqrt(1.0 - (x / critical_field)),
+                lambda x: x * 0,
+            ],
+        )
+
+    def critical_temperature2(
+        self,
+        applied_field: float,
+        critical_field: float,
+        critical_temperature_0T: float,
+    ) -> float:
+        """
+        Inverted version of Tuyn's law (for Bc2)
         """
         return np.piecewise(
             applied_field,

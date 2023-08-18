@@ -160,6 +160,7 @@ class DepthAveragingCalculator:
                 lambda x: np.inf,
             ],
         )
+
     def critical_temperature(
         self,
         applied_field: float,
@@ -176,8 +177,7 @@ class DepthAveragingCalculator:
                 applied_field >= critical_field,
             ],
             [
-                lambda x: critical_temperature_0T
-                * np.sqrt(1.0 - (x / critical_field)),
+                lambda x: critical_temperature_0T * np.sqrt(1.0 - (x / critical_field)),
                 lambda x: x * 0,
             ],
         )

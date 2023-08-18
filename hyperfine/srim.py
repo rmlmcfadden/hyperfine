@@ -25,7 +25,7 @@ def _unix2dos(filename: str) -> None:
     """
     Convenience method replicating the functionality of unix2dos.
     """
-    
+
     with open(filename, "rb") as input_file:
         input_string = input_file.read()
 

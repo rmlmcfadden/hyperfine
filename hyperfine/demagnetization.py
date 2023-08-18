@@ -51,8 +51,8 @@ def N_cuboid(a: float, b: float, c: float) -> float:
 
     Approximate analytic formula that interpolates between the limiting cases of an infinitely thin (c -> 0, N -> 1) and an infinitely thick (c -> +inf, N -> 0) sample (field applied parallel to the c-axis).
 
-    Calculated using Eq. (22) from:    
-    
+    Calculated using Eq. (22) from:
+
     R. Prozorov and V. G. Kogan,
     "Effective demagnetizing factors of diamagnetic samples of various shapes",
     Phys. Rev. Appl. 10, 014030 (2018).

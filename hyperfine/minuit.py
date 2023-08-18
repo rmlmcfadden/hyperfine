@@ -64,7 +64,7 @@ def json2minuit(minuit: Minuit, filename: str) -> None:
 
     # restore the fit quantities
     for quantity in ["values", "errors", "limits", "fixed"]:
-        if quantity in results:        
+        if quantity in results:
             for key, value in results[quantity].items():
                 minuit.__getattribute__(quantity)[key] = value
 
@@ -106,15 +106,15 @@ class GenericLeastSquares3D:
     ) -> float:
         """
         Convenience method for calculating the chi2 contribution of a single set of points.
-        """        
+        """
         return ((v - self.model(x, y, z, *par)) / e) ** 2
 
     # we accept a variable number of model parameters
     def __call__(self, *par) -> float:
         """
         Functor for computing the chi2.
-        """        
-        
+        """
+
         # serial algorithm for calculating the chi2
         """
         chi2 = 0.0
@@ -135,8 +135,8 @@ class GenericLeastSquares3D:
             for x, y, z, v, e in zip(self.x, self.y, self.z, self.value, self.error)
         )
         chi2 = sum(chi2_list)
-        
-        # optionally print the result to the terminal.        
+
+        # optionally print the result to the terminal.
         if self.verbose:
             print(
                 "\nχ² / ndof (\n"
@@ -169,4 +169,3 @@ class LeastSquares3D(GenericLeastSquares3D):
     ):
         super().__init__(model, x, y, z, value, error, verbose)
         self.func_code = iminuit.util.make_func_code(iminuit.util.describe(model)[3:])
-

@@ -4,7 +4,7 @@ from scipy import constants, integrate, interpolate, special
 from .. import distributions
 
 
-# class for handeling the details required for calculating the mean field
+# class for handling the details required for calculating the mean field
 # at a given energy by integrating over the implantation profile
 class DepthAveragingCalculator:
     # constructor
@@ -83,7 +83,7 @@ class DepthAveragingCalculator:
         z_max_2: float,
     ) -> float:
         return distributions.modified_beta_2(
-            z, alpha_1, beta_1, z_max_1, fraction_1, alpha_2, beta_2
+            z, alpha_1, beta_1, z_max_1, fraction_1, alpha_2, beta_2, z_max_2
         )
 
     # convenience function
@@ -113,27 +113,35 @@ class DepthAveragingCalculator:
         )
 
     # London equation (Meissner state)
-    def _london(x, B0, lambda_L, dead_layer):
+    def _london(
+        self,
+        z: float,
+        applied_field_G: float,
+        penetration_depth_nm: float,
+        dead_layer_nm: float,
+    ) -> float:
         return np.piecewise(
-            x,
+            z,
             [
-                x <= dead_layer,
-                x > dead_layer,
+                z <= dead_layer_nm,
+                z > dead_layer_nm,
             ],
             [
-                lambda x: B0 + x * 0.0,
-                lambda x: B0 * np.exp(-(x - dead_layer) / lambda_L),
+                lambda x: applied_field_G + x * 0.0,
+                lambda x: applied_field_G
+                * np.exp(-(x - dead_layer_nm) / penetration_depth_nm),
             ],
         )
 
     def london_ms(
+        self,
         z: float,
         applied_field_G: float,
         penetration_depth_nm: float,
         dead_layer_nm: float,
         demagnetization_factor: float = 0.0,
     ) -> float:
-        return _london(z, applied_field_G, penetration_depth_nm, dead_layer_nm) / (
+        return self._london(z, applied_field_G, penetration_depth_nm, dead_layer_nm) / (
             1.0 - demagnetization_factor
         )
 
@@ -148,13 +156,13 @@ class DepthAveragingCalculator:
     ):
         # product of the london model w/ the implantion distribution
         def integrand(z: float) -> float:
-            return london_ms(
+            return self.london_ms(
                 z,
                 applied_field_G,
                 penetration_depth_nm,
                 dead_layer_nm,
                 demagnetization_factor,
-            ) * stopping_distribution_e(z, energy_keV)
+            ) * self.stopping_distribution_e(z, energy_keV)
 
         # do the numeric integration using adaptive Gaussian quadrature
         # https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.quad.html
@@ -169,6 +177,7 @@ class DepthAveragingCalculator:
             limit=np.iinfo(np.int32).max,  # maximum number of subintervals
             points=[  # potential singularities/discontinuities in the integrand
                 0.0,
+                dead_layer_nm,
                 self.z_max_1(energy_keV),
                 self.z_max_2(energy_keV),
             ],

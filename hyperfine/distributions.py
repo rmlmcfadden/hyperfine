@@ -1,5 +1,5 @@
 import numpy as np
-from scipy import constants, special
+from scipy import special
 
 
 def modified_beta(
@@ -71,18 +71,6 @@ def modified_beta_2_mean(
     ) * modified_beta_mean(alpha_2, beta_2, z_max_2)
 
 
-# muon gyromagnetic ratio in μs^-1 G^-1 (as defined in musrfit)
-gamma_mu = (
-    2.0
-    * np.abs(
-        constants.physical_constants["muon mag. mom."][0]
-        / constants.physical_constants["reduced Planck constant"][0]
-    )
-    * 1e-4  # 1/T to 1/G
-    * 1e-6  # 1/s to 1/us
-)
-
-
 def skewed_gaussian(
     B: float,
     B_0: float,
@@ -91,6 +79,8 @@ def skewed_gaussian(
 ) -> float:
     """
     Skewed Gaussian distribution (as defined in musrfit).
+
+    Note: all parameters must have the same units (e.g., magnetic field)!
     """
 
     #
@@ -105,39 +95,4 @@ def skewed_gaussian(
                 lambda B: np.exp(-0.5 * np.square((B - B_0) / sigma_p)),
             ],
         )
-    )
-
-
-def skewed_gaussian_mean(
-    B_0: float,
-    sigma_m: float,
-    sigma_p: float,
-) -> float:
-    """
-    Mean of the skewed Gaussian distribution (as defined in musrfit).
-    """
-    return B_0 + np.sqrt(2.0 / np.pi) * (sigma_p - sigma_m) / gamma_mu
-
-
-def skewed_gaussian_mean_error(
-    B_0: float,
-    B_0_error: float,
-    sigma_m: float,
-    sigma_m_error: float,
-    sigma_p: float,
-    sigma_p_error: float,
-) -> float:
-    """
-    Uncertainty of the mean of the skewed Gaussian distribution (as defined in musrfit).
-    """
-
-    # first derivatives
-    dskg_dB_0 = 1.0
-    dskg_dsigma_m = -1.0 * np.sqrt(2.0 / np.pi) / gamma_mu
-    dskg_dsigma_p = 1.0 * np.sqrt(2.0 / np.pi) / gamma_mu
-    # error propagation
-    return np.sqrt(
-        np.square(dskg_dB_0 * B_0_error)
-        + np.square(dskg_dsigma_m * sigma_m_error)
-        + np.square(dskg_dsigma_p * sigma_p_error)
     )

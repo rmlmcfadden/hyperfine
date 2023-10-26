@@ -404,7 +404,7 @@ class DepthAveragingCalculator:
                 critical_temperature_K,
                 lower_critical_field_T,
             )
-            
+
             # select the correct local field model based on the field regime
             if effective_field_T <= lower_critical_field_finite_temp_T:
                 # simple London model when in the Meissner state
@@ -415,8 +415,8 @@ class DepthAveragingCalculator:
                     scaled_lambda,
                 )
             else:
-               # continuum London model when in the vortex state
-               B = self.B_london_vortex_continuum_T(
+                # continuum London model when in the vortex state
+                B = self.B_london_vortex_continuum_T(
                     z,
                     scaled_lambda,
                     dead_layer_nm,

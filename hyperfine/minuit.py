@@ -168,4 +168,11 @@ class LeastSquares3D(GenericLeastSquares3D):
         verbose: bool = False,
     ):
         super().__init__(model, x, y, z, value, error, verbose)
-        self.func_code = iminuit.util.make_func_code(iminuit.util.describe(model)[3:])
+        # self.func_code = iminuit.util.make_func_code(iminuit.util.describe(model)[3:])
+
+        pars = iminuit.util.describe(model, annotations=True)
+        model_args = iter(pars)
+        next(model_args)  # skip x
+        next(model_args)  # skip y
+        next(model_args)  # skip z
+        self._parameters = {k: pars[k] for k in model_args}

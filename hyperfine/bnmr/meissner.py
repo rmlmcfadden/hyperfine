@@ -2,6 +2,9 @@ import numpy as np
 import pandas as pd
 from scipy import constants, integrate, interpolate, special
 from .. import distributions
+from .susceptibility import tl_B_c1_T, magnetic_volume_susceptibility
+from .nlme import scaled_penetration_depth_nm
+from typing import Annotated
 
 
 class DepthAveragingCalculator:
@@ -248,20 +251,70 @@ class DepthAveragingCalculator:
             ],
         )
 
+    def field_enhancement_factor(
+        self,
+        applied_field_T: float,
+        temperature_K: float,
+        critical_temperature_K: float,
+        lower_critical_field_T: float,
+        upper_critical_field_T: float,
+        demagnetization_factor: float,
+    ) -> float:
+        return 1.0 / (
+            1.0
+            + magnetic_volume_susceptibility(
+                applied_field_T,
+                temperature_K,
+                critical_temperature_K,
+                lower_critical_field_T,
+                upper_critical_field_T,
+                0.0,  # normal state susceptibility
+            )
+            * demagnetization_factor
+        )
+
+    def B_london_vortex_continuum_T(
+        self,
+        depth_nm: float,
+        penetration_depth_nm: Annotated[float, 0:None],
+        dead_layer_nm: Annotated[float, 0:None],
+        applied_field_T: Annotated[float, 0:None],
+        average_field_T: Annotated[float, 0:None],
+    ) -> float:
+        """
+        See Eq. (3) and below in: Brandt PRL 67, (1991).
+        """
+
+        return np.piecewise(
+            depth_nm,
+            [
+                depth_nm <= dead_layer_nm,
+                depth_nm > dead_layer_nm,
+            ],
+            [
+                lambda x: applied_field_T + 0.0 * x,
+                lambda x: average_field_T
+                + (applied_field_T - average_field_T)
+                * np.exp(-(x - dead_layer_nm) / penetration_depth_nm),
+            ],
+        )
+
     # helper function
     def calculate_mean_slr_rate_E(
         self,
         energy_keV: float,
         applied_field_T: float,
         dead_layer_nm: float,
-        lambda_L_nm: float,
+        penetration_depth_nm: float,
         dipolar_field_T: float,
         correlation_time_s: float,
     ) -> float:
 
         # product of the London model w/ the SLR rate "ingredients"
         def integrand(z):
-            B = self.london_model(z, applied_field_T, dead_layer_nm, lambda_L_nm)
+            B = self.london_model(
+                z, applied_field_T, dead_layer_nm, penetration_depth_nm
+            )
             lor = self.lorentzian(B, dipolar_field_T, correlation_time_s)
             rho = self.stopping_distribution_e(z, energy_keV)
             return lor * rho
@@ -292,87 +345,100 @@ class DepthAveragingCalculator:
         energy_keV: float,
         applied_field_T: float,
         dead_layer_nm: float,
-        lambda_L_nm: float,
+        penetration_depth_nm: float,
         dipolar_field_T: float,
         correlation_time_s: float,
         temperature_K: float,
         critical_temperature_K: float,
-        critical_field_T: float,
+        lower_critical_field_T: float,
+        upper_critical_field_T: float,
         slope_s_K: float,
         curie_constant_K_s: float,
         surface_constant_s: float,
+        demagnetization_factor: float,
+        slope_scaling_constant: float,
+        slope_scaling_exponent: float,
     ) -> float:
 
         # correct applied field for demagnetization
-        """
-        if temperature_K < effective_T_c:
-            N_effective = 0.15
-            applied_field_T = applied_field_T / (1.0 - N_effective)
-        """
-        N_effective = 0.00
-        applied_field_T = applied_field_T / (1.0 - N_effective)
+        effective_field_T = (
+            self.field_enhancement_factor(
+                applied_field_T,
+                temperature_K,
+                critical_temperature_K,
+                lower_critical_field_T,
+                upper_critical_field_T,
+                demagnetization_factor,
+            )
+            * applied_field_T
+        )
 
         # pre-compute some values
-        effective_T_c = self.critical_temperature(
-            applied_field_T, critical_field_T, critical_temperature_K
+        effective_T_c = self.critical_temperature2(
+            effective_field_T, upper_critical_field_T, critical_temperature_K
         )
-        # effective_T_c = critical_temperature_K
 
-        # don't waste time doing numeric integration if it isn't needed!
-        """      
-        if temperature_K > effective_T_c:
-            B = applied_field_T
-            lor = self.lorentzian(B, dipolar_field_T, correlation_time_s)
-            linear = slope_s_K * temperature_K
-            # linear = slope_s_K * np.sqrt(temperature_K)
-            rate = lor + linear
-            return rate
-        """
         oxide_layer_thickness_nm = 5.0
 
         # product of the London model w/ the SRL rate "ingredients"
         def integrand(z: float) -> float:
-            """
-            effective_T_c = self.critical_temperature(
-                applied_field_T, critical_field_T, critical_temperature_K
-            )
-            """
-            # effective_T_c = critical_temperature_K
+
+            # calculate the effective magnetic penetration depth
+            # (i.e., at finite temperature)
             effective_lambda = self.lambda_two_fluid(
-                temperature_K, effective_T_c, lambda_L_nm
+                temperature_K, effective_T_c, penetration_depth_nm
             )
-            if temperature_K < effective_T_c:
-                # add the corrections for the non-linear Meissner effect
-                xi_0 = 40.0  # BCS coherence length
-                lambda_L = 29.0  # London penetration depth
-                # see e.g., Eq. 2.45 in Section 2.4.4 of https://cds.cern.ch/record/1518890
-                # (note: beware the typos in the surrounding equations...)
-                kappa = (2.0 * np.sqrt(3.0) / np.pi) * (
-                    np.square(effective_lambda) / (xi_0 * lambda_L)
-                )  # GL parameter
-                xi = effective_lambda / kappa  # GL coherence length
-                B_c = constants.value("mag. flux quantum") / (
-                    constants.value("vacuum mag. permeability")
-                    * 2.0
-                    * np.sqrt(2.0)
-                    * (xi * 1e-9)
-                    * (effective_lambda * 1e-9)
-                )  # thermodynamic critical field in Tesla
-                # Eq. (2) in https://doi.org/10.1103/PhysRevResearch.4.013156
-                numer = kappa * (kappa + np.power(2.0, 1.5))
-                denom = 8.0 * np.square(kappa + np.sqrt(2.0))
-                effective_lambda = (
-                    1.0 + (numer / denom) * np.square(applied_field_T / B_c)
-                ) * effective_lambda
-            B = self.london_model(z, applied_field_T, dead_layer_nm, effective_lambda)
+
+            # calculate the scaled magnetic penetration depth
+            # (i.e., at finite magnetic field)
+            scaled_lambda = scaled_penetration_depth_nm(
+                effective_field_T,
+                effective_lambda,
+                29.0,  # Nb's London penetration depth (nm)
+                40.0,  # Nb's BCS coherence length (nm)
+            )
+
+            # calculate the lower critical field at finite temperature
+            lower_critical_field_finite_temp_T = tl_B_c1_T(
+                temperature_K,
+                critical_temperature_K,
+                lower_critical_field_T,
+            )
+            
+            # select the correct local field model based on the field regime
+            if effective_field_T <= lower_critical_field_finite_temp_T:
+                # simple London model when in the Meissner state
+                B = self.london_model(
+                    z,
+                    effective_field_T,
+                    dead_layer_nm,
+                    scaled_lambda,
+                )
+            else:
+               # continuum London model when in the vortex state
+               B = self.B_london_vortex_continuum_T(
+                    z,
+                    scaled_lambda,
+                    dead_layer_nm,
+                    effective_field_T,
+                    applied_field_T,
+                )
+
+            # Lorentzian-like contribution from dipole-dipole relaxation
             lor = self.lorentzian(B, dipolar_field_T, correlation_time_s)
-            #
-            # linear = slope_s_K * temperature_K if z > 5.0 else 0.0
-            # linear = slope_s_K * temperature_K * np.power
-            linear = (
-                slope_s_K * np.power(applied_field_T, -1.5)  # empirical scaling
-                + 1.271e-2  # Korringa slope @ high field
-            ) * temperature_K
+
+            # empirical scaling of the slope with applied field
+            # + 1.271e-2 = Korringa slope @ high field
+            scaled_slope_s_K = slope_s_K * (
+                1.0
+                + np.power(
+                    effective_field_T / slope_scaling_constant, -slope_scaling_exponent
+                )
+            )
+
+            # linear contribution to the slr rate
+            linear = scaled_slope_s_K * temperature_K
+
             # curie = (
             #     surface_constant_s + curie_constant_K_s / temperature_K
             #     if z <= 5.0
@@ -381,7 +447,7 @@ class DepthAveragingCalculator:
             # curie = (curie_constant_K_s / temperature_K) if z <= oxide_layer_thickness_nm else (curie_constant_K_s / temperature_K) * np.exp(-(z-oxide_layer_thickness_nm))
             curie = (
                 (curie_constant_K_s / np.power(temperature_K, surface_constant_s))
-                * np.power(applied_field_T, -2.0)
+                # * np.power(effective_field_T, -2.0)
                 if z <= oxide_layer_thickness_nm
                 else 0.0
             )
@@ -397,9 +463,10 @@ class DepthAveragingCalculator:
             # handle potential nan
             if curie == np.nan:
                 curie = np.finfo(float).max
-            # linear = slope_s_K * np.sqrt(temperature_K)
+
             rate = lor + linear + curie
             rho = self.stopping_distribution_e(z, energy_keV)
+
             return rate * rho
 
         # do the numeric integration using adaptive Gaussian quadrature
@@ -429,15 +496,19 @@ class DepthAveragingCalculator:
         energy_keV: list,
         applied_field_T: float,
         dead_layer_nm: float,
-        lambda_L_nm: float,
+        penetration_depth_nm: float,
         dipolar_field_T: float,
         correlation_time_s: float,
         temperature_K: float,
         critical_temperature_K: float,
-        critical_field_T: float,
+        lower_critical_field_T: float,
+        upper_critical_field_T: float,
         slope_s_K: float,
         curie_constant_K_s: float,
         surface_constant_s: float,
+        demagnetization_factor: float,
+        slope_scaling_constant: float,
+        slope_scaling_exponent: float,
     ):
         energy_keV = np.asarray(energy_keV)
         if energy_keV.size == 1:
@@ -445,15 +516,19 @@ class DepthAveragingCalculator:
                 energy_keV,
                 applied_field_T,
                 dead_layer_nm,
-                lambda_L_nm,
+                penetration_depth_nm,
                 dipolar_field_T,
                 correlation_time_s,
                 temperature_K,
                 critical_temperature_K,
-                critical_field_T,
+                lower_critical_field_T,
+                upper_critical_field_T,
                 slope_s_K,
                 curie_constant_K_s,
                 surface_constant_s,
+                demagnetization_factor,
+                slope_scaling_constant,
+                slope_scaling_exponent,
             )
         results = np.empty(energy_keV.size)
         for i, e_keV in enumerate(energy_keV):
@@ -461,14 +536,18 @@ class DepthAveragingCalculator:
                 e_keV,
                 applied_field_T,
                 dead_layer_nm,
-                lambda_L_nm,
+                penetration_depth_nm,
                 dipolar_field_T,
                 correlation_time_s,
                 temperature_K,
                 critical_temperature_K,
-                critical_field_T,
+                lower_critical_field_T,
+                upper_critical_field_T,
                 slope_s_K,
                 curie_constant_K_s,
                 surface_constant_s,
+                demagnetization_factor,
+                slope_scaling_constant,
+                slope_scaling_exponent,
             )
         return results

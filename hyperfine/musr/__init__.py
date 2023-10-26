@@ -1,4 +1,4 @@
-from . import meissner
+from . import meissner, _meissner
 import numpy as np
 from scipy import constants
 

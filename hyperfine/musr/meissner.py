@@ -117,9 +117,12 @@ class DepthAveragingCalculator:
         self,
         z: float,
         applied_field_G: float,
-        penetration_depth_nm: float,
         dead_layer_nm: float,
+        penetration_depth_nm: float,
+        demagnetization_factor: float = 0.0,
     ) -> float:
+        effective_field_G = applied_field_G / (1.0 - demagnetization_factor)
+
         return np.piecewise(
             z,
             [
@@ -127,8 +130,8 @@ class DepthAveragingCalculator:
                 z > dead_layer_nm,
             ],
             [
-                lambda x: applied_field_G + x * 0.0,
-                lambda x: applied_field_G
+                lambda x: effective_field_G + x * 0.0,
+                lambda x: effective_field_G
                 * np.exp(-(x - dead_layer_nm) / penetration_depth_nm),
             ],
         )
@@ -137,12 +140,16 @@ class DepthAveragingCalculator:
         self,
         z: float,
         applied_field_G: float,
-        penetration_depth_nm: float,
         dead_layer_nm: float,
+        penetration_depth_nm: float,
         demagnetization_factor: float = 0.0,
     ) -> float:
-        return self._london(z, applied_field_G, penetration_depth_nm, dead_layer_nm) / (
-            1.0 - demagnetization_factor
+        return self._london(
+            z,
+            applied_field_G,
+            dead_layer_nm,
+            penetration_depth_nm,
+            demagnetization_factor,
         )
 
     # helper function
@@ -159,8 +166,8 @@ class DepthAveragingCalculator:
             return self.london_ms(
                 z,
                 applied_field_G,
-                penetration_depth_nm,
                 dead_layer_nm,
+                penetration_depth_nm,
                 demagnetization_factor,
             ) * self.stopping_distribution_e(z, energy_keV)
 

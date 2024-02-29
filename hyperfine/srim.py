@@ -9,12 +9,20 @@ def get_line_number(
     encoding: str = "gbk",
 ) -> int:
     """
-    Deduce where the data columns start in the file RANGE_3D.txt output by SRIM.
+    Deduce where the data columns start in the `RANGE_3D.txt` file output by SRIM.
+
+    Args:
+        filename: Name of the `RANGE_3D.txt` file output from SRIM
+        phrase: Character sequence to find in the file
+        encoding: Encoding of the `RANGE_3D.txt` file
+
+    Returns:
+        The line number in `RANGE_3D.txt.` that matches `phrase`.
     """
 
     # https://stackoverflow.com/a/3961303
     with open(filename, "r", encoding=encoding) as fh:
-        for (i, line) in enumerate(fh, 1):
+        for i, line in enumerate(fh, 1):
             if phrase in line:
                 return i
     # return a negative index if the phrase is not found

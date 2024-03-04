@@ -229,8 +229,9 @@ class DepthAveragingCalculatorNL(DepthAveragingCalculator):
         bcs_coherence_length_nm: Annotated[float, 0:None],
         mean_free_path_nm: Annotated[float, 0:None],
         demagnetization_factor: Annotated[float, 0:1],
-        # temperature_K: Annotated[float, 0:None] = 0.0,
-        # critical_temperature_K: Annotated[float, 0:None] = 9.25,
+        temperature_K: Annotated[float, 0:None],
+        critical_temperature_K: Annotated[float, 0:None],
+        gap_0K_eV: Annotated[float, 0:None],
     ) -> float:
         """Pippard's nonlocal screening model.
 
@@ -244,6 +245,9 @@ class DepthAveragingCalculatorNL(DepthAveragingCalculator):
             bcs_coherence_length_nm: BCS coherence length (nm).
             mean_free_path_nm: Electron mean-free-path (nm).
             demagnetization_factor: Effective demagnetization factor.
+            temperature_K: Absolute temperature (K).
+            critical_temperature_K: Superconducting transition temperature (K).
+            gap_0K_eV: Superconducting gap energy at 0 K (eV).
 
         Returns:
             The field screening profile at a given depth.
@@ -254,6 +258,9 @@ class DepthAveragingCalculatorNL(DepthAveragingCalculator):
             # nonlocal field screening model
             pippard.specular_profile_dl(
                 depth_nm,
+                temperature_K,
+                critical_temperature_K,
+                gap_0K_eV,
                 london_penetration_depth_nm,
                 mean_free_path_nm,
                 bcs_coherence_length_nm,
@@ -275,6 +282,9 @@ class DepthAveragingCalculatorNL(DepthAveragingCalculator):
         bcs_coherence_length_nm: Annotated[float, 0:None],
         mean_free_path_nm: Annotated[float, 0:None],
         demagnetization_factor: Annotated[float, 0:1],
+        temperature_K: Annotated[float, 0:None],
+        critical_temperature_K: Annotated[float, 0:None],
+        gap_0K_eV: Annotated[float, 0:None],
     ) -> float:
         """Integrand for calculating the mean magnetic field at a given implantation energy.
 
@@ -287,6 +297,9 @@ class DepthAveragingCalculatorNL(DepthAveragingCalculator):
             bcs_coherence_length_nm: BCS coherence length (nm).
             mean_free_path_nm: Electron mean-free-path (nm).
             demagnetization_factor: Effective demagnetization factor.
+            temperature_K: Absolute temperature (K).
+            critical_temperature_K: Superconducting transition temperature (K).
+            gap_0K_eV: Superconducting gap energy at 0 K (eV).
 
         Returns:
             Integrand for the average magnetic field at a given implantation energy.
@@ -301,6 +314,9 @@ class DepthAveragingCalculatorNL(DepthAveragingCalculator):
             bcs_coherence_length_nm,
             mean_free_path_nm,
             demagnetization_factor,
+            temperature_K,
+            critical_temperature_K,
+            gap_0K_eV,
         ) * self.stopping_distribution_e(z, energy_keV)
 
     @override
@@ -313,6 +329,9 @@ class DepthAveragingCalculatorNL(DepthAveragingCalculator):
         bcs_coherence_length_nm: Annotated[float, 0:None],
         mean_free_path_nm: Annotated[float, 0:None],
         demagnetization_factor: Annotated[float, 0:1],
+        temperature_K: Annotated[float, 0:None],
+        critical_temperature_K: Annotated[float, 0:None],
+        gap_0K_eV: Annotated[float, 0:None],
     ) -> float:
         """Calculate average magnetic field at a given implantation energy.
 
@@ -324,6 +343,9 @@ class DepthAveragingCalculatorNL(DepthAveragingCalculator):
             bcs_coherence_length_nm: BCS coherence length (nm).
             mean_free_path_nm: Electron mean-free-path (nm).
             demagnetization_factor: Effective demagnetization factor.
+            temperature_K: Absolute temperature (K).
+            critical_temperature_K: Superconducting transition temperature (K).
+            gap_0K_eV: Superconducting gap energy at 0 K (eV).
 
         Returns:
             The average magnetic field at a given implantation energy.
@@ -346,6 +368,9 @@ class DepthAveragingCalculatorNL(DepthAveragingCalculator):
                 bcs_coherence_length_nm,
                 mean_free_path_nm,
                 demagnetization_factor,
+                temperature_K,
+                critical_temperature_K,
+                gap_0K_eV,
             ),
             epsabs=np.sqrt(np.finfo(float).eps),  # absolute error tolerance
             epsrel=np.sqrt(np.finfo(float).eps),  # relative error tolerance
@@ -370,6 +395,9 @@ class DepthAveragingCalculatorNL(DepthAveragingCalculator):
         bcs_coherence_length_nm: Annotated[float, 0:None],
         mean_free_path_nm: Annotated[float, 0:None],
         demagnetization_factor: Annotated[float, 0:1],
+        temperature_K: Annotated[float, 0:None],
+        critical_temperature_K: Annotated[float, 0:None],
+        gap_0K_eV: Annotated[float, 0:None],
     ) -> float:
         """Calculate average magnetic field at a given implantation energy.
 
@@ -383,6 +411,9 @@ class DepthAveragingCalculatorNL(DepthAveragingCalculator):
             bcs_coherence_length_nm: BCS coherence length (nm).
             mean_free_path_nm: Electron mean-free-path (nm).
             demagnetization_factor: Effective demagnetization factor.
+            temperature_K: Absolute temperature (K).
+            critical_temperature_K: Superconducting transition temperature (K).
+            gap_0K_eV: Superconducting gap energy at 0 K (eV).
 
         Returns:
             The average magnetic field at a given implantation energy.
@@ -402,5 +433,8 @@ class DepthAveragingCalculatorNL(DepthAveragingCalculator):
                 bcs_coherence_length_nm,
                 mean_free_path_nm,
                 demagnetization_factor,
+                temperature_K,
+                critical_temperature_K,
+                gap_0K_eV,
             )
         return results

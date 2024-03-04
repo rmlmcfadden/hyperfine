@@ -5,7 +5,7 @@ from .interpolation import gap_cos_eV, gap_tanh_eV, lambda_two_fluid_nm
 
 
 def j_0(
-    T: Annotated[Sequence[float], 0:None],
+    T: Annotated[float, 0:None],
     T_c: Annotated[float, 0:None],
     Delta_0: Annotated[float, 0:None],
 ) -> float:
@@ -33,6 +33,9 @@ def j_0(
 
 
 def xi_Pippard(
+    T: Annotated[float, 0:None],
+    T_c: Annotated[float, 0:None],
+    Delta_0: Annotated[float, 0:None],
     l: Annotated[float, 0:None],
     xi_0: Annotated[float, 0:None],
     alpha: Annotated[float, 0:None] = 1.0,
@@ -41,22 +44,28 @@ def xi_Pippard(
     Evaluate the effective Pippard coherence length for a finite electron mean-free-path.
 
     Args:
+        T: Absolute temperature (K).
+        T_c: Superconducting transition temperature (K).
+        Delta_0: Superconducting gap energy at 0 K (eV).
         l: electron mean-free-path (nm).
-        xi_0: Pippard coherence length (nm) at 0 K.
+        xi_0: Pippard coherence length at 0 K (nm).
         alpha: numerical constant on the order of unity.
 
     Returns:
         The effective Pippard coherence length (nm).
     """
 
-    recip_xi_0 = 1.0 / xi_0
-    recip_l = 1.0 / (alpha * l)
+    recip_xi_0 = j_0(T, T_c, Delta_0) / xi_0
+    recip_l = alpha / l
 
     return 1.0 / (recip_xi_0 + recip_l)
 
 
 def K_Pippard(
     q: Annotated[float, 0:None],
+    T: Annotated[float, 0:None],
+    T_c: Annotated[float, 0:None],
+    Delta_0: Annotated[float, 0:None],
     lambda_L: Annotated[float, 0:None],
     l: Annotated[float, 0:None],
     xi_0: Annotated[float, 0:None],
@@ -67,21 +76,29 @@ def K_Pippard(
 
     Args:
         q: wavevector (1/nm).
+        T: Absolute temperature (K).
+        T_c: Superconducting transition temperature (K).
+        Delta_0: Superconducting gap energy at 0 K (eV).
         lambda_L: London penetration depth (nm).
         l: electron mean-free-path (nm).
-        xi_0: Pippard coherence length (nm) at 0 K.
+        xi_0: Pippard coherence length at 0 K (nm).
         alpha: numerical constant on the order of unity.
 
     Returns:
         The Pippard response function K(q) at q.
     """
 
-    xi = xi_Pippard(l, xi_0, alpha)
+    # calculate the temperature-dependent values for the coherence length xi
+    # and magnetic penetration depth lambda_T
+    xi = xi_Pippard(T, T_c, Delta_0, l, xi_0, alpha)
+    lambda_T = lambda_two_fluid_nm(T, T_c, lambda_L)
 
+    # define a low-q cutoff to prevent numeric oscillations from finite
+    # floating-point precision
     q_cutoff = np.sqrt(np.finfo(float).eps)
 
     if q > q_cutoff:
-        a = (1.0 / lambda_L**2) * (xi / xi_0)
+        a = (1.0 / lambda_T**2) * (xi / xi_0)
         b = (3.0 / 2.0) * (1.0 / (q * xi) ** 3)
         c = 1.0 + (q * xi) ** 2
         d = np.arctan(q * xi)
@@ -89,7 +106,7 @@ def K_Pippard(
 
         return a * (b * (c * d - e))
     else:
-        a_cutoff = (1.0 / lambda_L**2) * (xi / xi_0)
+        a_cutoff = (1.0 / lambda_T**2) * (xi / xi_0)
         b_cutoff = (3.0 / 2.0) * (1.0 / (q_cutoff * xi) ** 3)
         c_cutoff = 1.0 + (q_cutoff * xi) ** 2
         d_cutoff = np.arctan(q_cutoff * xi)
@@ -100,6 +117,9 @@ def K_Pippard(
 
 def integrand_diffusive(
     q: Annotated[float, 0:None],
+    T: Annotated[float, 0:None],
+    T_c: Annotated[float, 0:None],
+    Delta_0: Annotated[float, 0:None],
     lambda_L: Annotated[float, 0:None],
     l: Annotated[float, 0:None],
     xi_0: Annotated[float, 0:None],
@@ -112,22 +132,28 @@ def integrand_diffusive(
 
     Args:
         q: wavevector (1/nm).
+        T: Absolute temperature (K).
+        T_c: Superconducting transition temperature (K).
+        Delta_0: Superconducting gap energy at 0 K (eV).
         lambda_L: London penetration depth (nm).
         l: electron mean-free-path (nm).
-        xi_0: Pippard coherence length (nm) at 0 K.
+        xi_0: Pippard coherence length at 0 K (nm).
         alpha: numerical constant on the order of unity.
 
     Returns:
         The integrand at a given wavevector q.
     """
 
-    K = K_Pippard(q, lambda_L, l, xi_0, alpha)
+    K = K_Pippard(q, T, T_c, Delta_0, lambda_L, l, xi_0, alpha)
 
     return np.log1p(K / q**2)
 
 
 def integrand_specular_profile(
     q: Annotated[float, 0:None],
+    T: Annotated[float, 0:None],
+    T_c: Annotated[float, 0:None],
+    Delta_0: Annotated[float, 0:None],
     lambda_L: Annotated[float, 0:None],
     l: Annotated[float, 0:None],
     xi_0: Annotated[float, 0:None],
@@ -140,22 +166,28 @@ def integrand_specular_profile(
 
     Args:
         q: wavevector (1/nm).
+        T: Absolute temperature (K).
+        T_c: Superconducting transition temperature (K).
+        Delta_0: Superconducting gap energy at 0 K (eV).
         lambda_L: London penetration depth (nm).
         l: electron mean-free-path (nm).
-        xi_0: Pippard coherence length (nm) at 0 K.
+        xi_0: Pippard coherence length at 0 K (nm).
         alpha: numerical constant on the order of unity.
 
     Returns:
         The integrand at a given wavevector q.
     """
 
-    K = K_Pippard(q, lambda_L, l, xi_0, alpha)
+    K = K_Pippard(q, T, T_c, Delta_0, lambda_L, l, xi_0, alpha)
 
     return q / (K + q * q)
 
 
 def specular_profile(
     z: Annotated[float, 0:None],
+    T: Annotated[float, 0:None],
+    T_c: Annotated[float, 0:None],
+    Delta_0: Annotated[float, 0:None],
     lambda_L: Annotated[float, 0:None],
     l: Annotated[float, 0:None],
     xi_0: Annotated[float, 0:None],
@@ -168,9 +200,12 @@ def specular_profile(
 
     Args:
         z: depth (nm).
+        T: Absolute temperature (K).
+        T_c: Superconducting transition temperature (K).
+        Delta_0: Superconducting gap energy at 0 K (eV).
         lambda_L: London penetration depth (nm).
         l: electron mean-free-path (nm).
-        xi_0: Pippard coherence length (nm) at 0 K.
+        xi_0: Pippard coherence length at 0 K (nm).
         alpha: numerical constant on the order of unity.
 
     Returns:
@@ -184,7 +219,7 @@ def specular_profile(
         integrand_specular_profile,
         0.0,
         np.inf,
-        args=(lambda_L, l, xi_0, alpha),
+        args=(T, T_c, Delta_0, lambda_L, l, xi_0, alpha),
         full_output=False,
         epsabs=np.sqrt(np.finfo(float).eps),  # 1.4e-8
         epsrel=np.sqrt(np.finfo(float).eps),  # 1.4e-8
@@ -199,6 +234,9 @@ def specular_profile(
 
 def specular_profile_dl(
     z: Annotated[float, 0:None],
+    T: Annotated[float, 0:None],
+    T_c: Annotated[float, 0:None],
+    Delta_0: Annotated[float, 0:None],
     lambda_L: Annotated[float, 0:None],
     l: Annotated[float, 0:None],
     xi_0: Annotated[float, 0:None],
@@ -212,9 +250,12 @@ def specular_profile_dl(
 
     Args:
         z: depth (nm).
+        T: Absolute temperature (K).
+        T_c: Superconducting transition temperature (K).
+        Delta_0: Superconducting gap energy at 0 K (eV).
         lambda_L: London penetration depth (nm).
         l: electron mean-free-path (nm).
-        xi_0: Pippard coherence length (nm) at 0 K.
+        xi_0: Pippard coherence length at 0 K (nm).
         alpha: numerical constant on the order of unity.
         dl: non-superconducting dead layer (nm).
 
@@ -227,10 +268,13 @@ def specular_profile_dl(
     if z_corr < 0.0:
         return 1.0
 
-    return specular_profile(z_corr, lambda_L, l, xi_0, alpha)
+    return specular_profile(z_corr, T, T_c, Delta_0, lambda_L, l, xi_0, alpha)
 
 
 def lambda_diffusive(
+    T: Annotated[float, 0:None],
+    T_c: Annotated[float, 0:None],
+    Delta_0: Annotated[float, 0:None],
     l: Annotated[float, 0:None],
     lambda_L: Annotated[float, 0:None],
     xi_0: Annotated[float, 0:None],
@@ -242,33 +286,23 @@ def lambda_diffusive(
     The calculation assumes diffuse scattering of electrons at the material's surface.
 
     Args:
+        T: Annotated[float, 0:None],
+        T_c: Annotated[float, 0:None],
+        Delta_0: Annotated[float, 0:None],
         l: electron mean-free-path (nm).
         lambda_L: London penetration depth (nm).
-        xi_0: Pippard coherence length (nm) at 0 K.
+        xi_0: Pippard coherence length at 0 K (nm).
         alpha: numerical constant on the order of unity.
 
     Returns:
         The magnetic penetration depth (nm) at 0 K.
     """
 
-    """
-    integral, _ = quadax.quadts(
-        integrand_diffusive,
-        (0.0, np.inf),
-        args=(lambda_L, l, xi_0, alpha),
-        full_output=False,
-        epsabs=1.4e-8,
-        epsrel=1.4e-8,
-        max_ninter=50,  # np.iinfo(np.int32).max causes memory usage to balloon
-        order=61,  # {41, 61, 81, 101}
-    )
-    """
-
     integral, _ = integrate.quad(
         integrand_diffusive,
         0.0,
         np.inf,
-        args=(lambda_L, l, xi_0, alpha),
+        args=(T, T_c, Delta_0, lambda_L, l, xi_0, alpha),
         full_output=False,
         epsabs=np.sqrt(np.finfo(float).eps),  # 1.4e-8
         epsrel=np.sqrt(np.finfo(float).eps),  # 1.4e-8
@@ -280,16 +314,35 @@ def lambda_diffusive(
 
 
 def lambda_diffusive2(
+    T: Annotated[float, 0:None],
+    T_c: Annotated[float, 0:None],
+    Delta_0: Annotated[float, 0:None],
     l: Sequence[float],
     lambda_L: Annotated[float, 0:None],
     xi_0: Annotated[float, 0:None],
     alpha: Annotated[float, 0:None] = 1.0,
 ) -> Sequence[float]:
-    """ """
+    """
+    Evaluate the magnetic penetration depth within Pippard theory.
+
+    The calculation assumes diffuse scattering of electrons at the material's surface.
+
+    Args:
+        T: Annotated[float, 0:None],
+        T_c: Annotated[float, 0:None],
+        Delta_0: Annotated[float, 0:None],
+        l: electron mean-free-path (nm).
+        lambda_L: London penetration depth (nm).
+        xi_0: Pippard coherence length at 0 K (nm).
+        alpha: numerical constant on the order of unity.
+
+    Returns:
+        The magnetic penetration depth (nm) at 0 K.
+    """
 
     results = np.array(len(l))
 
     for i, ll in enumerate(l):
-        results[i] = lambda_diffusive(ll, lambda_L, xi_0, alpha)
+        results[i] = lambda_diffusive(T, T_c, Delta_0, ll, lambda_L, xi_0, alpha)
 
     return results

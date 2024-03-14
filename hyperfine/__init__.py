@@ -7,3 +7,4 @@ from . import musr
 from . import srf
 from . import srim
 from . import superconductivity
+from ._version import __version__

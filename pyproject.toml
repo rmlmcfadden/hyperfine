@@ -12,6 +12,7 @@ authors = [
 summary = "A Python package providing miscellaneous tools to aid in materials science studies using implanted-ion NMR probes."
 readme = "README.md"
 license = "MIT"
+requires-python = ">=3.8"
 classifiers = [
 	"Development Status :: 2 - Pre-Alpha",
 	"Intended Audience :: Science/Research",

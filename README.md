@@ -3,9 +3,11 @@
 `hyperfine` is a Python package providing miscellaneous tools to aid in
 materials science studies using implanted-ion nuclear-decay spin probes,
 such as [μSR] and [β-NMR].
-The package's content/functionality largely reflect my own scientific interests,
-as well as my current academic projects (see my [Google Scholar profile]);
-however, my hope is that some of the utilities will be useful for you too!
+The package's content and functionality largely reflect my scientific interests,
+as well as the recent academic projects I've worked on
+(see, e.g., my [Google Scholar profile]).
+My hope is that some of the utilities implemented here will be useful for you,
+too!
 
 ## Installing
 

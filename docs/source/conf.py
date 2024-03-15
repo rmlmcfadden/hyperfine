@@ -3,18 +3,32 @@
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
+import datetime
 import os
+import re
 import sys
 import tomli
-import datetime
+
 
 # sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath("../../"))
 
-from hyperfine._version import __version__
+# get the package version without requiring all its dependencies
+VERSION_FILE = "../../hyperfine/_version.py"
+
+with open(VERSION_FILE, "r") as f:
+    VERSION_LINE = f.read()
+
+VERSION_RE = r"^__version__ = ['\"]([^'\"]*)['\"]"
+result = re.search(VERSION_RE, VERSION_LINE, re.M)
+
+if result:
+    __version__ = result.group(1)
+else:
+    raise RuntimeError(f"Unable to find version string in {VERSION_FILE}.")
 
 
-# get the metadata from the package's pyproject.toml 
+# get the metadata from the package's pyproject.toml
 with open("../../pyproject.toml", "rb") as f:
     toml = tomli.load(f)
 

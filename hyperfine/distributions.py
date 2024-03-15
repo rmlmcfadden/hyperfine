@@ -1,3 +1,4 @@
+from typing import Annotated, Sequence
 import numpy as np
 from scipy import special
 
@@ -96,3 +97,89 @@ def skewed_gaussian(
             ],
         )
     )
+
+
+def weibull_pdf(
+    x: Sequence[float],
+    shape: Annotated[float, 0:None],
+    scale: Annotated[float, 0:None],
+) -> Sequence[float]:
+    """Probability density function for a Weibull distribution.
+
+    Args:
+        x: Position.
+        shape: Shape parameter.
+        scale: Scale parameter.
+
+    Returns:
+        The probability density at x.
+
+    """
+
+    k = shape
+    l = scale
+
+    return np.piecewise(
+        x,
+        [
+            x < 0.0,
+            x >= 0.0,
+        ],
+        [
+            lambda x: np.zeros(x.size),
+            lambda x: (k / l) * np.power(x / l, k - 1.0) * np.exp(-np.power(x / l, k)),
+        ],
+    )
+
+
+def weibull_cdf(
+    x: Sequence[float],
+    shape: Annotated[float, 0:None],
+    scale: Annotated[float, 0:None],
+) -> Sequence[float]:
+    """Cumulative distribution function for a Weibull distribution.
+
+    Args:
+        x: Position.
+        shape: Shape parameter.
+        scale: Scale parameter.
+
+    Returns:
+        The cumulative probability density at x.
+    """
+
+    k = shape
+    l = scale
+
+    return np.piecewise(
+        x,
+        [
+            x < 0.0,
+            x >= 0.0,
+        ],
+        [
+            lambda x: np.zeros(x.size),
+            lambda x: 1.0 - np.exp(-np.power(x / l, k)),
+        ],
+    )
+
+
+def weibull_mean(
+    shape: Annotated[float, 0:None],
+    scale: Annotated[float, 0:None],
+) -> float:
+    """Mean of a Weibull distribution.
+
+    Args:
+        x: Position.
+        shape: Shape parameter.
+        scale: Scale parameter.
+
+    Returns:
+        The mean of the distribution.
+    """
+
+    k = shape
+    l = scale
+
+    return l * special.gamma(1.0 + 1.0 / k)

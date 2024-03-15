@@ -1,17 +1,31 @@
+"""Probability distribution functions.
+"""
+
 from typing import Annotated, Sequence
 import numpy as np
 from scipy import special
 
 
-def modified_beta(
-    z: float,
-    alpha: float,
-    beta: float,
-    z_max: float,
+def modified_beta_pdf(
+    z: Sequence[float],
+    alpha: Annotated[float, 0:None],
+    beta: Annotated[float, 0:None],
+    z_max: Annotated[float, 0:None],
 ) -> float:
+    """Probability density function for a modified beta distribution.
+
+    This modified form extends the beta distribution's domain from [0, 1] to [0, z_max].
+
+    Args:
+        z: Position.
+        alpha: First shape parameter.
+        beta: Second shape parameter.
+        z_max: Upper bounds of the domain.
+
+    Returns:
+        The probability density at position z.
     """
-    Modified beta distribution.
-    """
+
     return np.piecewise(
         z,
         [
@@ -30,70 +44,124 @@ def modified_beta(
     )
 
 
-def modified_beta_2(
-    z: float,
-    alpha_1: float,
-    beta_1: float,
-    z_max_1: float,
-    fraction_1: float,
-    alpha_2: float,
-    beta_2: float,
-    z_max_2: float,
-) -> float:
+def modified_beta_2_pdf(
+    z: Sequence[float],
+    alpha_1: Annotated[float, 0:None],
+    beta_1: Annotated[float, 0:None],
+    z_max_1: Annotated[float, 0:None],
+    fraction_1: Annotated[float, 0:1],
+    alpha_2: Annotated[float, 0:None],
+    beta_2: Annotated[float, 0:None],
+    z_max_2: Annotated[float, 0:None],
+) -> Sequence[float]:
+    """Probability density function for a weighted sum of two modified beta distribution.
+
+    This modified form extends the beta distribution's domain from [0, 1] to [0, max(z_max_1, z_max_2)].
+
+    Args:
+        z: Position.
+        alpha_1: First shape parameter of the first component.
+        beta_1: Second shape parameter of the first component.
+        z_max_1: Upper bounds of the domain of the first component.
+        fraction_1: Fractional weight of the first component.
+        alpha_2: First shape parameter of the second component.
+        beta_2: Second shape parameter of the second component.
+        z_max_2: Upper bounds of the domain of the second component.
+
+    Returns:
+        The probability density at position z.
     """
-    Sum of two modified beta distributions.
-    """
-    return fraction_1 * modified_beta(z, alpha_1, beta_1, z_max_1) + (
+
+    return fraction_1 * modified_beta_pdf(z, alpha_1, beta_1, z_max_1) + (
         1.0 - fraction_1
-    ) * modified_beta(z, alpha_2, beta_2, z_max_2)
+    ) * modified_beta_pdf(z, alpha_2, beta_2, z_max_2)
 
 
-def modified_beta_mean(alpha: float, beta: float, z_max: float) -> float:
+def modified_beta_mean(
+    alpha: Annotated[float, 0:None],
+    beta: Annotated[float, 0:None],
+    z_max: Annotated[float, 0:None],
+) -> float:
+    """Mean position of a modified beta distribution.
+
+    Args:
+        alpha: First shape parameter.
+        beta: Second shape parameter.
+        z_max: Upper bounds of the domain.
+
+    Returns:
+        The mean position of the distribution.
     """
-    Mean of the modified beta distribution
-    """
+
     return z_max * alpha / (alpha + beta)
 
 
 def modified_beta_2_mean(
-    alpha_1: float,
-    beta_1: float,
-    z_max_1: float,
-    fraction_1: float,
-    alpha_2: float,
-    beta_2: float,
-    z_max_2: float,
+    alpha_1: Annotated[float, 0:None],
+    beta_1: Annotated[float, 0:None],
+    z_max_1: Annotated[float, 0:None],
+    fraction_1: Annotated[float, 0:1],
+    alpha_2: Annotated[float, 0:None],
+    beta_2: Annotated[float, 0:None],
+    z_max_2: Annotated[float, 0:None],
 ) -> float:
+    """Mean position of a weighted sum of two modified beta distributions.
+
+    Args:
+        alpha_1: First shape parameter of the first component.
+        beta_1: Second shape parameter of the first component.
+        z_max_1: Upper bounds of the domain of the first component.
+        fraction_1: Fractional weight of the first component.
+        alpha_2: First shape parameter of the second component.
+        beta_2: Second shape parameter of the second component.
+        z_max_2: Upper bounds of the domain of the second component.
+
+    Returns:
+        The mean position of the distribution.
     """
-    Mean of the modified beta distribution 2
-    """
+
     return fraction_1 * modified_beta_mean(alpha_1, beta_1, z_max_1) + (
         1.0 - fraction_1
     ) * modified_beta_mean(alpha_2, beta_2, z_max_2)
 
 
-def skewed_gaussian(
-    B: float,
-    B_0: float,
-    sigma_m: float,
-    sigma_p: float,
-) -> float:
-    """
-    Skewed Gaussian distribution (as defined in musrfit).
+def skewed_gaussian_pdf(
+    x: Sequence[float],
+    mu: Annotated[float, None:None],
+    sigma_m: Annotated[float, 0:None],
+    sigma_p: Annotated[float, 0:None],
+) -> Sequence[float]:
+    """Probability density function for a skewed Gaussian distribution.
 
-    Note: all parameters must have the same units (e.g., magnetic field)!
+    This implementation uses a piecewise definition, wherein two scale parameters
+    are used to define the width on either side of the distribution's location parameter.
+
+    This convention here follows that of in musrfit).
+
+    Note - all parameters must have the same units (e.g., magnetic field)!
+
+    Args:
+        x: Position.
+        mu: Location parameter.
+        sigma_m: Negative scale parameter (i.e., for positions greater than the location parameter).
+        sigma_p: Positive scale parameter (i.e., for positions less than the location parameter).
+
+    Returns:
+        The probability density at position x.
     """
 
-    #
     return (
         np.sqrt(2.0 / np.pi)
         * (1.0 / (sigma_p + sigma_m))
         * np.piecewise(
-            B,
-            [B <= B_0, B > B_0],
+            x,
             [
-                lambda B: np.exp(-0.5 * np.square((B - B_0) / sigma_m)),
-                lambda B: np.exp(-0.5 * np.square((B - B_0) / sigma_p)),
+                x <= mu,
+                x > mu,
+            ],
+            [
+                lambda x: np.exp(-0.5 * np.square((x - mu) / sigma_m)),
+                lambda x: np.exp(-0.5 * np.square((x - mu) / sigma_p)),
             ],
         )
     )

@@ -1,3 +1,6 @@
+"""Facilities for analyzing Meissner screening profiles determined from LEM measurements.
+"""
+
 from typing import Annotated, Sequence, override
 import numpy as np
 import pandas as pd
@@ -6,11 +9,28 @@ from .. import distributions
 from ..superconductivity import pippard
 
 
-# class for handling the details required for calculating the mean field
-# at a given energy by integrating over the implantation profile
 class DepthAveragingCalculator:
-    # constructor
-    def __init__(self, file_name, interpolation="linear"):
+    """Calculator for convolving a Meissner screening profile with a muon stopping distribution.
+
+    Class for handling the details required for calculating the mean magnetic
+    field at a given muon implantation energy by convolving a Meissner
+    screening profile with the corresponding stopping distribution.
+
+    This instance assumes local electrodynamics for the screening profile.
+    """
+
+    def __init__(
+        self,
+        file_name: str,
+        interpolation: str = "linear",
+    ) -> None:
+        """Constructor.
+
+        Args:
+            file_name: Name of the CSV containing the stopping profile coefficients.
+            interpolation: Type of interpolation scheme used for the stopping profile coefficients.
+        """
+
         # read the implantation distribution parameterss
         self.df = pd.read_csv(file_name, delimiter=",")
 
@@ -72,25 +92,24 @@ class DepthAveragingCalculator:
             assume_sorted=False,
         )
 
-    # the final implantation distribution function
     def stopping_distribution(
         self,
-        z: float,
-        alpha_1: float,
-        beta_1: float,
-        z_max_1: float,
-        fraction_1: float,
-        alpha_2: float,
-        beta_2: float,
-        z_max_2: float,
-    ) -> float:
-        return distributions.modified_beta_2_pdf(
-            z, alpha_1, beta_1, z_max_1, fraction_1, alpha_2, beta_2, z_max_2
-        )
+        depth_nm: Sequence[float],
+        energy_keV: Annotated[float, 0:None],
+    ) -> Sequence[float]:
+        """Probability density function for the muon stopping distribution.
 
-    # convenience function
-    def stopping_distribution_e(self, depth_nm: float, energy_keV: float) -> float:
-        return self.stopping_distribution(
+        The distribution is assumed to follow a weighted sum of two modified beta distributions.
+
+        Args:
+            depth_nm: Depth below the surface (nm).
+            energy_keV: Muon implantation energy (keV).
+
+        Returns:
+            The probability density at depth_nm.
+        """
+
+        return distributions.modified_beta_2_pdf(
             depth_nm,
             self.alpha_1(energy_keV),
             self.beta_1(energy_keV),
@@ -101,9 +120,22 @@ class DepthAveragingCalculator:
             self.z_max_2(energy_keV),
         )
 
-    # calculate the mean implantation depth
-    def calculate_mean_depth(self, energy_keV: float) -> float:
-        # weighted average
+    def calculate_mean_depth(
+        self,
+        energy_keV: Annotated[float, 0:None],
+    ) -> float:
+        """Calculate the mean muon stopping depth for a given implantation energy.
+
+        The stopping distribution is assumed to follow a weighted sum of two
+        modified beta distributions.
+
+        Args:
+            energy_keV: Muon implantation energy (keV).
+
+        Returns:
+            The mean stopping depth (nm).
+        """
+
         return distributions.modified_beta_2_mean(
             self.alpha_1(energy_keV),
             self.beta_1(energy_keV),
@@ -114,15 +146,28 @@ class DepthAveragingCalculator:
             self.z_max_2(energy_keV),
         )
 
-    # London equation (Meissner state)
     def _london(
         self,
-        z: float,
-        applied_field_G: float,
-        dead_layer_nm: float,
-        penetration_depth_nm: float,
-        demagnetization_factor: float = 0.0,
-    ) -> float:
+        z: Sequence[float],
+        applied_field_G: Annotated[float, 0:None],
+        dead_layer_nm: Annotated[float, 0:None],
+        penetration_depth_nm: Annotated[float, 0:None],
+        demagnetization_factor: Annotated[float, 0:1] = 0.0,
+    ) -> Sequence[float]:
+        """London model for the Meissner screening profile.
+
+        Args:
+            z: Depth below the surface (nm).
+            applied_field_G: Applied magnetic field (G).
+            dead_layer_nm: Thickness of the non-superconducting dead layer (nm).
+            penetration_depth_nm: Effective magnetic penetration depth (nm).
+            demagnetization_factor: Effective demagnetization factor.
+
+        Returns:
+            The magnetic field value at depth z below the surface (G).
+        """
+
+        # determine the geometrically enhanced field value
         effective_field_G = applied_field_G / (1.0 - demagnetization_factor)
 
         return np.piecewise(
@@ -140,12 +185,25 @@ class DepthAveragingCalculator:
 
     def london_ms(
         self,
-        z: float,
-        applied_field_G: float,
-        dead_layer_nm: float,
-        penetration_depth_nm: float,
-        demagnetization_factor: float = 0.0,
-    ) -> float:
+        z: Sequence[float],
+        applied_field_G: Annotated[float, 0:None],
+        dead_layer_nm: Annotated[float, 0:None],
+        penetration_depth_nm: Annotated[float, 0:None],
+        demagnetization_factor: Annotated[float, 0:1] = 0.0,
+    ) -> Sequence[float]:
+        """London model for the Meissner screening profile.
+
+        Args:
+            z: Depth below the surface (nm).
+            applied_field_G: Applied magnetic field (G).
+            dead_layer_nm: Thickness of the non-superconducting dead layer (nm).
+            penetration_depth_nm: Effective magnetic penetration depth (nm).
+            demagnetization_factor: Effective demagnetization factor.
+
+        Returns:
+            The magnetic field value at depth z below the surface (G).
+        """
+
         return self._london(
             z,
             applied_field_G,
@@ -154,15 +212,27 @@ class DepthAveragingCalculator:
             demagnetization_factor,
         )
 
-    # helper function
     def calculate_mean_field(
         self,
         energy_keV: float,
-        applied_field_G: float,
-        dead_layer_nm: float,
-        penetration_depth_nm: float,
-        demagnetization_factor: float,
-    ):
+        applied_field_G: Annotated[float, 0:None],
+        dead_layer_nm: Annotated[float, 0:None],
+        penetration_depth_nm: Annotated[float, 0:None],
+        demagnetization_factor: Annotated[float, 0:1],
+    ) -> float:
+        """Helper function for calculating the mean magnetic field below the surface.
+
+        Args:
+            energy_keV: Muon implantation energy (keV).
+            applied_field_G: Applied magnetic field (G).
+            dead_layer_nm: Thickness of the non-superconducting dead layer (nm).
+            penetration_depth_nm: Effective magnetic penetration depth (nm).
+            demagnetization_factor: Effective demagnetization factor.
+
+        Returns:
+            The mean magnetic field below the surface.
+        """
+
         # product of the london model w/ the implantion distribution
         def integrand(z: float) -> float:
             return self.london_ms(
@@ -171,11 +241,11 @@ class DepthAveragingCalculator:
                 dead_layer_nm,
                 penetration_depth_nm,
                 demagnetization_factor,
-            ) * self.stopping_distribution_e(z, energy_keV)
+            ) * self.stopping_distribution(z, energy_keV)
 
         # do the numeric integration using adaptive Gaussian quadrature
         # https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.quad.html
-        result = integrate.quad(
+        result, _ = integrate.quad(
             integrand,
             0.0,  # lower integration limit
             max(  # upper integration limit
@@ -191,17 +261,31 @@ class DepthAveragingCalculator:
                 self.z_max_2(energy_keV),
             ],
         )
-        return result[0]
+        return result
 
-    # functor version of calculate_mean_field (can take an array of energies)!
     def __call__(
         self,
-        energy_keV: np.array,
-        applied_field_G: float,
-        dead_layer_nm: float,
-        penetration_depth_nm: float,
-        demagnetization_factor: float,
-    ) -> np.array:
+        energy_keV: Sequence[float],
+        applied_field_G: Annotated[float, 0:None],
+        dead_layer_nm: Annotated[float, 0:None],
+        penetration_depth_nm: Annotated[float, 0:None],
+        demagnetization_factor: Annotated[float, 0:None],
+    ) -> Sequence[float]:
+        """Functor for calculating the mean magnetic field below the surface.
+
+        Can accept arrays of energies as input!
+
+        Args:
+            energy_keV: Muon implantation energy (keV).
+            applied_field_G: Applied magnetic field (G).
+            dead_layer_nm: Thickness of the non-superconducting dead layer (nm).
+            penetration_depth_nm: Effective magnetic penetration depth (nm).
+            demagnetization_factor: Effective demagnetization factor.
+
+        Returns:
+            The mean magnetic field below the surface.
+        """
+
         # energy_keV = np.asarray(energy_keV)
         results = np.empty(energy_keV.size)
         for i, e_keV in enumerate(energy_keV):
@@ -216,8 +300,28 @@ class DepthAveragingCalculator:
 
 
 class DepthAveragingCalculatorNL(DepthAveragingCalculator):
+    """Calculator for convolving a Meissner screening profile with a muon stopping distribution.
 
-    def __init__(self, file_name: str, interpolation: str = "linear"):
+    Class for handling the details required for calculating the mean magnetic
+    field at a given muon implantation energy by convolving a Meissner
+    screening profile with the corresponding stopping distribution.
+
+    This instance assumes nonlocal electrodynamics for the screening profile.
+    """
+
+    def __init__(
+        self,
+        file_name: str,
+        interpolation: str = "linear",
+    ) -> None:
+        """Constructor.
+
+        Args:
+            file_name: Name of the CSV containing the stopping profile coefficients.
+            interpolation: Type of interpolation scheme used for the stopping profile coefficients.
+        """
+
+        # initialize from the base class
         super().__init__(file_name, interpolation)
 
     def pippard_ms(
@@ -317,7 +421,7 @@ class DepthAveragingCalculatorNL(DepthAveragingCalculator):
             temperature_K,
             critical_temperature_K,
             gap_0K_eV,
-        ) * self.stopping_distribution_e(z, energy_keV)
+        ) * self.stopping_distribution(z, energy_keV)
 
     @override
     def calculate_mean_field(

@@ -11,7 +11,7 @@ import datetime
 # sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath("../../"))
 
-from hyperfine import __version__
+from hyperfine._version import __version__
 
 
 # get the metadata from the package's pyproject.toml 

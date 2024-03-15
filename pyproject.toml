@@ -52,7 +52,7 @@ dynamic = [
 
 [project.urls]
 Homepage = "https://github.com/rmlmcfadden/hyperfine"
-Documentation = "https://github.com/rmlmcfadden/hyperfine"
+Documentation = "https://hyperfine.readthedocs.io/"
 Repository = "https://github.com/rmlmcfadden/hyperfine.git"
 Issues = "https://github.com/rmlmcfadden/hyperfine/issues"
 

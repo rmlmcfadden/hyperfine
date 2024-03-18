@@ -1,3 +1,6 @@
+"""Analysis tools for materials science studies using implanted-ion NMR probes.
+"""
+
 from . import bnmr
 from . import demagnetization
 from . import distributions

@@ -1,4 +1,4 @@
-from . import bcs, pippard, interpolation, gle
+from . import bcs, pippard, interpolation, intertype, gle
 import numpy as np
 
 

@@ -143,8 +143,8 @@ def skewed_gaussian_pdf(
     Args:
         x: Position.
         mu: Location parameter.
-        sigma_m: Negative scale parameter (i.e., for positions greater than the location parameter).
-        sigma_p: Positive scale parameter (i.e., for positions less than the location parameter).
+        sigma_m: Negative scale parameter (i.e., for positions less than the location parameter).
+        sigma_p: Positive scale parameter (i.e., for positions greater than the location parameter).
 
     Returns:
         The probability density at position x.

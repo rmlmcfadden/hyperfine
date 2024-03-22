@@ -1,3 +1,10 @@
+"""Interpolation formulas.
+
+Common interpolation formulas used in superconductivity as:
+* Phenomenological models describing (universal) data trends.
+* Analytic approximations for theoretical expressions whose solutions must be derived numerically.
+"""
+
 from typing import Annotated, Callable, Optional, Sequence
 import numpy as np
 

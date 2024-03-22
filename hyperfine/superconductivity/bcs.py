@@ -1,3 +1,16 @@
+"""Expressions from Bardeen-Cooper-Schrieffer (BCS) theory for nonlocal field screening.
+
+J. Bardeen, L. N. Cooper, and J. R. Schrieffer,
+Theory of Superconductivity,
+Phys. Rev. 108, 1175 (1957).
+https://doi.org/10.1103/PhysRev.108.1175
+
+J. Halbritter,
+On the penetration of the magnetic field into a superconductor,
+Z. Physik 243, 201–219 (1971).
+https://doi.org/10.1007/BF01394851
+"""
+
 from typing import Annotated, Callable, Optional, Sequence
 import numpy as np
 from scipy import constants, integrate

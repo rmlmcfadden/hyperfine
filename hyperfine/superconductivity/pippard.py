@@ -1,3 +1,12 @@
+"""Expressions from Pippard's nonlocal screening model.
+
+A. B. Pippard,
+An experimental and theoretical study of the relation between magnetic field
+and current in a superconductor,
+Proc. R. Soc. London A 216, 547-568 (1953).
+https://doi.org/10.1098/rspa.1953.0040
+"""
+
 from typing import Annotated, Sequence
 import numpy as np
 from scipy import constants, integrate

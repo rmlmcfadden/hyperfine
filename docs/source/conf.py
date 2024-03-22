@@ -49,7 +49,7 @@ extensions = [
     "sphinx.ext.autosummary",
     # "sphinx.ext.mathjax",
     "sphinx.ext.napoleon",
-    # "sphinx.ext.viewcode",
+    "sphinx.ext.viewcode",
     "sphinx_rtd_theme",
 ]
 

@@ -1,3 +1,12 @@
+"""Facilities for creating/parsing SRIM input/output files.
+
+The Stopping and Range of Ions in Matter (SRIM) is a suite of programs for
+calculating and simulating projectile-matter interactions during
+ion-implantation.
+
+http://srim.org/
+"""
+
 import string
 import warnings
 import numpy as np
@@ -8,16 +17,15 @@ def get_line_number(
     phrase: str = "-------  ----------- ----------- -----------",
     encoding: str = "gbk",
 ) -> int:
-    """
-    Deduce where the data columns start in the `RANGE_3D.txt` file output by SRIM.
+    """Deduce where the data columns start in the ``RANGE_3D.txt`` file output by ``TRIM.exe``.
 
     Args:
-        filename: Name of the `RANGE_3D.txt` file output from SRIM
-        phrase: Character sequence to find in the file
-        encoding: Encoding of the `RANGE_3D.txt` file
+        filename: Name of the ``RANGE_3D.txt`` file output from ``SRIM``.
+        phrase: Character sequence to find in the file.
+        encoding: Encoding of the ``RANGE_3D.txt`` file.
 
     Returns:
-        The line number in `RANGE_3D.txt.` that matches `phrase`.
+        The line number in ``RANGE_3D.txt`` that matches ``phrase``.
     """
 
     # https://stackoverflow.com/a/3961303
@@ -30,8 +38,16 @@ def get_line_number(
 
 
 def _unix2dos(filename: str) -> None:
-    """
-    Convenience method replicating the functionality of unix2dos.
+    """Convenience method replicating the functionality of ``unix2dos``.
+
+    ``unix2dos`` is a non-standard Unix program for converting line breaks in a
+    text file from Unix format (Line feed) to DOS format (carriage return +
+    Line feed).
+
+    See: https://en.wikipedia.org/wiki/Unix2dos
+
+    Args:
+        filename: Name of the file run ``unix2dos`` on.
     """
 
     with open(filename, "rb") as input_file:
@@ -64,8 +80,15 @@ def create_trim_dat(
     description: str = "",
     total_ions: int = 99999,
 ) -> None:
-    """
-    Create a TRIM.DAT file for use in an advanced TRIM calculation.
+    """Create a ``TRIM.DAT`` file for use in an advanced ``TRIM.exe`` calculation.
+
+    Args:
+        atomic_number: Atomic number of the projectile.
+        energy_eV: Energy of the projectile (eV).
+        angle_mean_deg: Mean angle of incidence with respect to the surface normal (degrees).
+        angle_sigma_deg: Standard deviation of the angle of incidence (degrees).
+        description: Description of simulation.
+        total_ions: Total number of ions to generate.
     """
 
     assert (atomic_number >= 1) & (atomic_number <= 92)
@@ -166,13 +189,28 @@ def _ellipsoid_unit_normal_vector(
     e_y_0: float = 0.0,
     e_z_0: float = 0.0,
 ) -> np.array:
+    """Calculate the unit vector normal to the surface of an ellipsoid at point :math:`p = (x, y, z)`.
+
+    Args:
+        x: Spatial position :math:`x`.
+        y: Spatial position :math:`y`.
+        z: Spatial position :math:`z`.
+        a: Ellipsoid semi-axis :math:`a`.
+        b: Ellipsoid semi-axis :math:`b`.
+        c: Ellipsoid semi-axis :math:`c`.
+        e_x_0: Ellipsoid :math:`x`-coordinate centre.
+        e_y_0: Ellipsoid :math:`y`-coordinate centre.
+        e_z_0: Ellipsoid :math:`z`-coordinate centre.
+
+    Returns:
+        The unit vector normal to the ellipsoid surface at :math:`p`.
     """
-    Calculate the unit vector normal to the surface of an ellipsoid at point p = (x, y, z).
-    """
+
     df_dx = 2.0 * (x - e_x_0) / np.square(a)
     df_dy = 2.0 * (y - e_y_0) / np.square(b)
     df_dz = 2.0 * (z - e_z_0) / np.square(c)
     magnitude = np.sqrt(np.square(df_dx) + np.square(df_dy) + np.square(df_dz))
+
     return np.array([df_dx, df_dy, df_dz]) / magnitude
 
 
@@ -192,10 +230,29 @@ def create_trim_dat_ellipsoid(
     description: str = "",
     total_ions: int = 99999,
 ) -> None:
-    """
-    Create a TRIM.DAT file for use in an advanced TRIM calculation.
+    """Create a ``TRIM.DAT`` file for use in an advanced ``TRIM.exe`` calculation.
 
-    This function is specific to an ellipsoid target.
+    In a standard TRIM calculation, the program assumes a flat target with
+    infinite lateral dimensions. Within this constraint, this function attempts
+    to transform the projectile ion trajectories to approximate incidence with
+    an ellipsoid-shaped target.
+
+    As with all TRIM calculations, the beam/projectile direction is initially
+    parallel the :math:`x`-axis.
+
+    Args:
+        beam_atomic_number: Projectile atomic number.
+        beam_energy_eV: Projectile energy (eV).
+        beam_fwhm_y_mm: FWHM of the projectile beam's lateral spread in the :math:`y`-direction.
+        beam_fwhm_z_mm: FWHM of the projectile beam's lateral spread in the :math:`z`-direction.
+        ellipsoid_semiaxis_a_mm: Ellipsoid semi-axis :math:`a`.
+        ellipsoid_semiaxis_b_mm: Ellipsoid semi-axis :math:`b`.
+        ellipsoid_semiaxis_c_mm: Ellipsoid semi-axis :math:`c`.
+        ellipsoid_position_x_mm: Ellipsoid :math:`x`-coordinate centre.
+        ellipsoid_position_y_mm: Ellipsoid :math:`y`-coordinate centre.
+        ellipsoid_position_z_mm: Ellipsoid :math:`z`-coordinate centre.
+        description: Description of simulation.
+        total_ions: Total number of ions to generate.
     """
 
     assert (beam_atomic_number >= 1) & (beam_atomic_number <= 92)

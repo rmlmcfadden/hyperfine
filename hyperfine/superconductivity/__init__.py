@@ -1,3 +1,6 @@
+"""Superconductivity.
+"""
+
 from . import bcs, pippard, interpolation, intertype, gle
 import numpy as np
 

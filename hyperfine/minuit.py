@@ -7,8 +7,16 @@ from joblib import Parallel, delayed, cpu_count
 
 
 def minos2dict(minuit: Minuit) -> dict:
-    """
-    Convert the MINOS errors to a dictionary (e.g., for serialization).
+    """Convert the MINOS errors to a dictionary.
+
+    Convert the MINOS (i.e., asymmetric) errors determined by the MINUIT2
+    minimizer to a dictionary (e.g., for serialization).
+
+    Args:
+        minuit: The ``iminuit.Minuit`` object.
+
+    Returns:
+        A dictionary containing the MINOS errors.
     """
 
     # empty dictionary to hold the results
@@ -35,8 +43,11 @@ def minos2dict(minuit: Minuit) -> dict:
 
 
 def minuit2json(minuit: Minuit, filename: str) -> None:
-    """
-    Serialize fitting results from an `iminuit.Minuit` object to a JSON file.
+    """Serialize fitting results from an `iminuit.Minuit` object to a JSON file.
+
+    Args:
+        minuit: The ``iminuit.Minuit`` object.
+        filename: Name of JSON file to save the serialized fit results.
     """
 
     # convert the results to a dictionary
@@ -54,8 +65,11 @@ def minuit2json(minuit: Minuit, filename: str) -> None:
 
 
 def json2minuit(minuit: Minuit, filename: str) -> None:
-    """
-    De-serialize fitting results from a JSON file to an `iminuit.Minuit` object.
+    """De-serialize fitting results from a JSON file to an `iminuit.Minuit` object.
+
+    Args:
+        minuit: The ``iminuit.Minuit`` object.
+        filename: Name of JSON file containing the serialized fit results.
     """
 
     # read the results into a dictionary
@@ -72,8 +86,7 @@ def json2minuit(minuit: Minuit, filename: str) -> None:
 
 
 class GenericLeastSquares3D:
-    """
-    Generic 3D least-squares cost function with error.
+    """Generic 3D least-squares cost function with error.
 
     https://iminuit.readthedocs.io/en/stable/tutorial/generic_least_squares.html
     """

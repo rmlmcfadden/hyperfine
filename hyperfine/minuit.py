@@ -1,3 +1,6 @@
+"""Utilities for interacting with the ``iminuit`` package.
+"""
+
 import json
 import numpy as np
 import iminuit

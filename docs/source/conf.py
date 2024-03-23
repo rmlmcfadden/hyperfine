@@ -47,7 +47,7 @@ copyright = f"2022-{datetime.date.today().year:d}, {author}"
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
-    # "sphinx.ext.mathjax",
+    "sphinx.ext.mathjax",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
     "sphinx_rtd_theme",

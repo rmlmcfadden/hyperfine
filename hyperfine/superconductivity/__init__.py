@@ -1,7 +1,7 @@
-"""Superconductivity.
+"""Superconductivity-related formulas.
 """
 
-from . import bcs, pippard, interpolation, intertype, gle
+from . import bcs, pippard, interpolation, intertype, london, ccf
 import numpy as np
 
 

@@ -1,9 +1,104 @@
-"""Facilities to aid in solving the generalized London equation (GLE) numerically.
+"""Expressions for the London model of magnetic field screening.
 """
 
 import numpy as np
 from scipy import constants, integrate, special
 from typing import Annotated, Sequence
+
+
+def screening_profile_bulk(
+    depth_nm: Sequence[float],
+    applied_field_G: Annotated[float, 0:None],
+    dead_layer_nm: Annotated[float, 0:None],
+    penetration_depth_nm: Annotated[float, 0:None],
+    demagnetization_factor: Annotated[float, 0:1],
+) -> Sequence[float]:
+    """Meissner screening profile for a bulk superconductor.
+
+    Meissner screening profile derived from London theory for a bulk
+    superconductor, wherein the material's electromagnetic response is treated
+    in the local limit.
+
+    Args:
+        depth_nm: Depth below the surface (nm).
+        applied_field_G: Applied magnetic field (G).
+        dead_layer_nm: Thickness of the non-superconducting surface dead layer (nm).
+        penetration_depth_nm: Magnetic penetration depth (nm).
+        demagnetization_factor: Effective demagnetization factor.
+
+    Returns:
+        The Meissner screening profile at depth ``depth_nm`` (G).
+    """
+
+    # effective field at the sample's surface
+    effective_field_G = applied_field_G / (1.0 - demagnetization_factor)
+
+    # correct for the dead layer thickness
+    z_nm = depth_nm - dead_layer_nm
+
+    # evaluate the expression as piecewise components
+    return np.piecewise(
+        z_nm,
+        [
+            z_nm <= 0.0,
+            z_nm > 0.0,
+        ],
+        [
+            lambda x: effective_field_G * np.ones(len(x)),
+            lambda x: effective_field_G * np.exp(-x / penetration_depth_nm),
+        ],
+    )
+
+
+def screening_profile_film(
+    depth_nm: Sequence[float],
+    applied_field_G: Annotated[float, 0:None],
+    dead_layer_nm: Annotated[float, 0:None],
+    penetration_depth_nm: Annotated[float, 0:None],
+    film_thickness_nm: Annotated[float, 0:None],
+    demagnetization_factor: Annotated[float, 0:1],
+) -> Sequence[float]:
+    """Meissner screening profile for a thin film superconductor.
+
+    Meissner screening profile derived from London theory for a thin film
+    superconductor, wherein the material's electromagnetic response is treated
+    in the local limit.
+
+    Args:
+        depth_nm: Depth below the surface (nm).
+        applied_field_G: Applied magnetic field (G).
+        dead_layer_nm: Thickness of the non-superconducting surface dead layer (nm).
+        film_thickness_nm: Film thickness (nm).
+        penetration_depth_nm: Magnetic penetration depth (nm).
+        demagnetization_factor: Effective demagnetization factor.
+
+    Returns:
+        The Meissner screening profile at depth ``depth_nm`` (G).
+    """
+
+    # effective field at the sample's surface
+    effective_field_G = applied_field_G / (1.0 - demagnetization_factor)
+
+    # correct for the dead layer thickness
+    z_nm = depth_nm - dead_layer_nm
+    t_nm = film_thickness_nm - dead_layer_nm
+
+    # evaluate the expression as piecewise components
+    return np.piecewise(
+        z_nm,
+        [
+            z_nm <= 0.0,
+            (z_nm > 0.0) & (z_nm <= t_nm),
+            z_nm > t_nm,
+        ],
+        [
+            lambda x: effective_field_G * np.ones(len(x)),
+            lambda x: effective_field_G
+            * np.cosh((0.5 * t_nm - x) / penetration_depth_nm)
+            / np.cosh(0.5 * t_nm / penetration_depth_nm),
+            lambda x: effective_field_G * np.ones(len(x)),
+        ],
+    )
 
 
 class GLESolver:

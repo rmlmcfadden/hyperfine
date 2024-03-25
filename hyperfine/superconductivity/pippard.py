@@ -86,7 +86,7 @@ def xi_Pippard(
 
            T = np.linspace(0.0, 1.0, 100)
            args = (1.0, 1.43e-3, 200.0, 50.0)
-           xi = np.array([pippard.xi_0(tt, *args) for tt in T])
+           xi = np.array([pippard.xi_Pippard(tt, *args) for tt in T])
            plt.plot(T, xi, "-")
            plt.xlabel("$T / T_{c}$")
            plt.ylabel(r"$\xi_{0}(T)$ (nm)")

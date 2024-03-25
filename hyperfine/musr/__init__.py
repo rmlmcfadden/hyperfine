@@ -219,7 +219,7 @@ def skewed_gaussian_mean(
     sigma_m__us: float,
     sigma_p__us: float,
 ) -> float:
-    """Mean of the skewed Gaussian distribution (as defined in musrfit).
+    r"""Mean of the skewed Gaussian distribution (as defined in musrfit).
 
     See also: https://lmu.web.psi.ch/docu/LEM_Memo/skewedGaussian/skewedGaussian.pdf
 
@@ -243,7 +243,7 @@ def skewed_gaussian_mean_error(
     sigma_p__us: float,
     sigma_p_error__us: float,
 ) -> float:
-    """Uncertainty of the mean of the skewed Gaussian distribution (as defined in musrfit).
+    r"""Uncertainty of the mean of the skewed Gaussian distribution (as defined in musrfit).
 
     See also: https://lmu.web.psi.ch/docu/LEM_Memo/skewedGaussian/skewedGaussian.pdf
 

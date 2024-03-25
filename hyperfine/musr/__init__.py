@@ -26,7 +26,7 @@ def raw_asymmetry(
     r"""Raw asymmetry between two detectors.
 
     For a pair of detectors (L)eft and (R)ight, calculate their asymmetry:
-    .. math:
+    .. math::
        A_{\mathrm{raw}} = \frac{(L - l) - (R - r)}{(L - l) + (R - r)}
 
     where
@@ -113,7 +113,7 @@ def corrected_asymmetry(
 
     For a pair of detectors (L)eft and (R)ight, calculate their corrected
     asymmetry:
-    .. math:
+    .. math::
        A_{\mathrm{corr.}} = \frac{(\alpha - l) + (\alpha + 1) A_{\mathrm{raw}}}{(\alpha \beta + l) + (\alpha \beta - 1) A_{\mathrm{raw}}}
 
     where
@@ -123,7 +123,7 @@ def corrected_asymmetry(
     and
     :math:`A_{\mathrm{raw}}` is the raw asymmetry
 
-    .. math:
+    .. math::
        A_{\mathrm{raw}} = \frac{(L - l) - (R - r)}{(L - l) + (R - r)}
 
     where

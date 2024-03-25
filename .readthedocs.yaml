@@ -12,6 +12,9 @@ build:
     - python3-sphinx
     - python3-tomli
     - python3-sphinx-rtd-theme
+    - python3-matplotlib
+    - python3-numpy
+    - python3-scipy
   tools:
     python: "3.12"
     # You can also specify other tool versions:
@@ -20,6 +23,7 @@ build:
     # golang: "1.19"
   jobs:
     pre_install:
+      - pip3 install .
       - cd docs/ && make clean html
 
 # Build documentation in the "docs/" directory with Sphinx

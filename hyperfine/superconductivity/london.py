@@ -28,6 +28,21 @@ def screening_profile_bulk(
 
     Returns:
         The Meissner screening profile at depth ``depth_nm`` (G).
+
+    Example:
+        .. plot::
+
+           import numpy as np
+           import matplotlib.pyplot as plt
+           from hyperfine.superconductivity import london
+
+           z = np.linspace(0.0, 200.0, 100)
+           args = (100.0, 10.0, 50.0, 0.05)
+           plt.plot(z, london.screening_profile_bulk(z, *args), "-")
+           plt.xlabel("$z$ (nm)")
+           plt.ylabel("$B(z)$ (nm)")
+           plt.show()
+
     """
 
     # effective field at the sample's surface

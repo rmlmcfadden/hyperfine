@@ -51,6 +51,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
     "sphinx_rtd_theme",
+    "matplotlib.sphinxext.plot_directive",
 ]
 
 #
@@ -63,6 +64,10 @@ napoleon_numpy_docstring = False
 napoleon_include_init_with_doc = True
 napoleon_include_private_with_doc = True
 napoleon_include_special_with_doc = True
+
+# matplotlib specific flags
+plot_include_source = True
+plot_html_show_source_link = True
 
 templates_path = ["_templates"]
 

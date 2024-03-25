@@ -89,6 +89,21 @@ def screening_profile_film(
 
     Returns:
         The Meissner screening profile at depth ``depth_nm`` (G).
+
+    Example:
+        .. plot::
+
+           import numpy as np
+           import matplotlib.pyplot as plt
+           from hyperfine.superconductivity import london
+
+           z = np.linspace(0.0, 200.0, 100)
+           args = (100.0, 10.0, 50.0, 190.0, 0.0)
+           plt.plot(z, london.screening_profile_film(z, *args), "-")
+           plt.xlabel("$z$ (nm)")
+           plt.ylabel("$B(z)$ (nm)")
+           plt.show()
+
     """
 
     # effective field at the sample's surface
@@ -347,6 +362,21 @@ class GLESolver:
         Returns:
             The Meissner screening profile at depth z (G).
 
+        Example:
+            .. plot::
+
+               import numpy as np
+               import matplotlib.pyplot as plt
+               from hyperfine.superconductivity import london
+
+               gles = london.GLESolver()
+               z = np.linspace(0.0, 200.0, 100)
+               args = (100.0, 10.0, 100.0, 30.0, 50.0, 0.05)
+               plt.plot(z, gles.screening_profile(z, *args), "-")
+               plt.xlabel("$z$ (nm)")
+               plt.ylabel("$B(z)$ (nm)")
+               plt.show()
+
         """
 
         # solve the GLE
@@ -397,7 +427,22 @@ class GLESolver:
             demagnetization_factor: Effective demagnetization factor.
 
         Returns:
-            The current density profile at depth z (A nm^-2).
+            The current density profile at depth z (A m^-2).
+
+        Example:
+            .. plot::
+
+               import numpy as np
+               import matplotlib.pyplot as plt
+               from hyperfine.superconductivity import london
+
+               gles = london.GLESolver()
+               z = np.linspace(0.0, 200.0, 100)
+               args = (100.0, 10.0, 100.0, 30.0, 50.0, 0.05)
+               plt.plot(z, gles.current_density(z, *args), "-")
+               plt.xlabel("$z$ (nm)")
+               plt.ylabel("$J(z)$ (A m$^{-2}$)")
+               plt.show()
 
         """
 
@@ -458,6 +503,21 @@ class GLESolver:
 
         Returns:
             The Meissner screening profile at depth z (G).
+
+        Example:
+            .. plot::
+
+               import numpy as np
+               import matplotlib.pyplot as plt
+               from hyperfine.superconductivity import london
+
+               gles = london.GLESolver()
+               z = np.linspace(0.0, 200.0, 100)
+               args = (100.0, 10.0, 100.0, 30.0, 50.0, 0.05)
+               plt.plot(z, gles(z, *args), "-")
+               plt.xlabel("$z$ (nm)")
+               plt.ylabel("$B(z)$ (nm)")
+               plt.show()
 
         """
 

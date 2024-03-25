@@ -9,16 +9,17 @@ https://doi.org/10.1098/rspa.1953.0040
 
 from typing import Annotated, Sequence
 import numpy as np
-from scipy import constants, integrate
+from scipy import constants, integrate, interpolate
 from .interpolation import gap_cos_eV, gap_tanh_eV, lambda_two_fluid_nm
+from ._muhlschlegel import _interp_gap_bcs
 
 
-def j_0(
+def j_0_t(
     T: Annotated[float, 0:None],
     T_c: Annotated[float, 0:None],
     Delta_0: Annotated[float, 0:None],
 ) -> float:
-    r"""???
+    r"""Bardeen-Cooper-Schrieffer (BCS) range function :math:`J(0,T)` (i.e., at :math:`R = 0`).
 
     Args:
         T: Absolute temperature (K).
@@ -26,7 +27,7 @@ def j_0(
         Delta_0: Superconducting gap energy at 0 K (eV).
 
     Returns:
-        ???
+        The BCS range function at temperature :math:`T`.
 
     Example:
         .. plot::
@@ -37,23 +38,70 @@ def j_0(
 
            T = np.linspace(0.0, 1.0, 100)
            args = (1.0, 1.43e-3)
-           plt.plot(T, pippard.j_0(T, *args), "-")
+           plt.plot(T, pippard.j_0_t(T, *args), "-")
            plt.xlabel("$T / T_{c}$")
-           plt.ylabel("$J(T,0)$")
+           plt.ylabel("$J(0,T)$")
            plt.show()
 
     """
 
+    # convenience terms
     k_B = constants.value("Boltzmann constant in eV/K")
+    t = T / T_c
+    e = _interp_gap_bcs(t)
+    arg = Delta_0 * e / (2.0 * k_B * T)
 
-    # use exponent n = 2 for closer agreement with the BCS result!
-    # this is identical to the implementation used in musrfit
-    l_norm = lambda_two_fluid_nm(T, T_c, 1.0, 2.0)
+    # assume [λ(t) / λ(0)]^2 = 1 / (1 - t^2), instead of the t^4 dependence of the two-fluid model.
+    # this gives for closer agreement with the (numeric) BCS result!
+    # this choice is identical to the implementation used by musrfit
 
-    g_norm = gap_cos_eV(T, T_c, Delta_0) / Delta_0
-    arg = gap_cos_eV(T, T_c, Delta_0) / (2.0 * k_B * T)
+    return (e / (1.0 - t**2)) * np.tanh(arg)
 
-    return (l_norm**2) * g_norm * np.tanh(arg)
+
+def j_0_t_wc(
+    T: Sequence[float],
+    T_c: Annotated[float, 0:None],
+) -> Sequence[float]:
+    r"""Bardeen-Cooper-Schrieffer (BCS) range function :math:`J(0,T)` (i.e., at :math:`R = 0`).
+
+    This implementation assumes weak electron-phonon coupling.
+
+    Args:
+        T: Absolute temperature (K).
+        T_c: Superconducting transition temperature (K).
+
+    Returns:
+        The BCS range function at temperature :math:`T`.
+
+    Example:
+        .. plot::
+
+           import numpy as np
+           import matplotlib.pyplot as plt
+           from hyperfine.superconductivity import pippard
+
+           T = np.linspace(0.0, 1.0, 100)
+           T_c = 1.0
+           plt.plot(T, pippard.j_0_t_wc(T, T_c), "-")
+           plt.xlabel("$T / T_{c}$")
+           plt.ylabel("$J(0,T)$")
+           plt.show()
+
+    """
+
+    # convenience terms
+    k_B = constants.value("Boltzmann constant in eV/K")
+    gamma_EM = 0.57721566490153286060651209008240243104215933593992
+    t = T / T_c
+    e = _interp_gap_bcs(t)
+    c = np.pi / np.exp(gamma_EM)  # 1.764...
+    arg = (c / 2.0) * (e / t)
+
+    # assume [λ(t) / λ(0)]^2 = 1 / (1 - t^2), instead of the t^4 dependence of the two-fluid model.
+    # this gives for closer agreement with the (numeric) BCS result!
+    # this choice is identical to the implementation used by musrfit
+
+    return (e / (1.0 - t**2)) * np.tanh(arg)
 
 
 def xi_Pippard(
@@ -94,7 +142,7 @@ def xi_Pippard(
 
     """
 
-    recip_xi_0 = j_0(T, T_c, Delta_0) / xi_0
+    recip_xi_0 = j_0_t(T, T_c, Delta_0) / xi_0
     recip_l = alpha / l
 
     return 1.0 / (recip_xi_0 + recip_l)

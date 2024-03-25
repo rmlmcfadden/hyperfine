@@ -39,7 +39,7 @@ def j_0(
            args = (1.0, 1.43e-3)
            plt.plot(T, pippard.j_0(T, *args), "-")
            plt.xlabel("$T / T_{c}$")
-           plt.ylabel(r"$\Delta(T)$ (eV)")
+           plt.ylabel("$J(T,0)$")
            plt.show()
 
     """
@@ -86,7 +86,8 @@ def xi_Pippard(
 
            T = np.linspace(0.0, 1.0, 100)
            args = (1.0, 1.43e-3, 200.0, 50.0)
-           plt.plot(T, pippard.xi_0(T, *args), "-")
+           xi = np.array([pippard.xi_0(tt, *args) for tt in T])
+           plt.plot(T, xi, "-")
            plt.xlabel("$T / T_{c}$")
            plt.ylabel(r"$\xi_{0}(T)$ (nm)")
            plt.show()
@@ -133,7 +134,8 @@ def K_Pippard(
 
            q = np.logspace(-4, 4, 200)
            args = (0.0, 10.0, 1.43e-3, 30.0, 300.0, 40.0)
-           plt.plot(q, pippard.K_Pippard(q, *args), "-")
+           k = np.array([pippard.K_Pippard(qq, *args) for qq in q])
+           plt.plot(q, k, "-")
            plt.xlabel("$q$ (nm$^{-1}$)")
            plt.ylabel(r"$K_{\mathrm{Pippard}}(q)$ (nm$^{-2}$)")
            plt.show()
@@ -203,7 +205,8 @@ def integrand_diffusive(
 
            q = np.logspace(-4, 4, 200)
            args = (0.0, 10.0, 1.43e-3, 30.0, 300.0, 40.0)
-           plt.plot(q, pippard.integrand_diffusive(q, *args), "-")
+           id = np.array([pippard.integrand_diffusive(qq, *args) for qq in q])
+           plt.plot(q, id, "-")
            plt.xlabel("$q$ (nm$^{-1}$)")
            plt.ylabel("$I(q)$")
            plt.show()
@@ -252,7 +255,8 @@ def integrand_specular_profile(
 
            q = np.logspace(-4, 4, 200)
            args = (0.0, 10.0, 1.43e-3, 30.0, 300.0, 40.0)
-           plt.plot(q, pippard.integrand_specular_profile(q, *args), "-")
+           isp = np.array([pippard.integrand_specular_profile(qq, *args) for qq in q])
+           plt.plot(q, isp, "-")
            plt.xlabel("$q$ (nm$^{-1}$)")
            plt.ylabel("$I(q)$ (nm)")
            plt.show()
@@ -300,7 +304,8 @@ def specular_profile(
 
            z = np.logspace(0.0, 200.0, 100)
            args = (0.0, 10.0, 1.43e-3, 30.0, 600.0, 300.0)
-           plt.plot(q, pippard.specular_profile(z, *args), "-")
+           b = np.array([pippard.specular_profile(zz, *args) for zz in z])
+           plt.plot(q, b, "-")
            plt.xlabel("$z$ (nm)")
            plt.ylabel("$B(z)$ (nm)")
            plt.show()
@@ -366,7 +371,8 @@ def specular_profile_dl(
 
            z = np.logspace(0.0, 200.0, 100)
            args = (0.0, 10.0, 1.43e-3, 30.0, 600.0, 300.0, 1.0, 10.0)
-           plt.plot(q, pippard.specular_profile_dl(z, *args), "-")
+           b = np.array([pippard.specular_profile_dl(zz, *args) for zz in z])
+           plt.plot(q, b, "-")
            plt.xlabel("$z$ (nm)")
            plt.ylabel("$B(z)$ (nm)")
            plt.show()

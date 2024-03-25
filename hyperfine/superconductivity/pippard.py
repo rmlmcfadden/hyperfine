@@ -329,7 +329,7 @@ def specular_profile(
         full_output=False,
         epsabs=np.sqrt(np.finfo(float).eps),  # 1.4e-8
         epsrel=np.sqrt(np.finfo(float).eps),  # 1.4e-8
-        limit=np.iinfo(np.int32).max,  # default = 50
+        limit=np.iinfo(np.int32).max / 4,  # default = 50
         # points=(0.0),
         weight="sin",
         wvar=z,
@@ -428,7 +428,7 @@ def lambda_diffusive(
         full_output=False,
         epsabs=np.sqrt(np.finfo(float).eps),  # 1.4e-8
         epsrel=np.sqrt(np.finfo(float).eps),  # 1.4e-8
-        limit=np.iinfo(np.int32).max,  # default = 50
+        limit=np.iinfo(np.int32).max / 4,  # default = 50
         # points=(0.0),
     )
 

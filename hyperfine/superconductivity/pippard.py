@@ -308,7 +308,7 @@ def specular_profile(
            import matplotlib.pyplot as plt
            from hyperfine.superconductivity import pippard
 
-           z = np.logspace(0.0, 200.0, 100)
+           z = np.linspace(0.0, 200.0, 100)
            args = (0.0, 10.0, 1.43e-3, 30.0, 600.0, 300.0)
            b = np.array([pippard.specular_profile(zz, *args) for zz in z])
            plt.plot(z, b, "-")
@@ -375,7 +375,7 @@ def specular_profile_dl(
            import matplotlib.pyplot as plt
            from hyperfine.superconductivity import pippard
 
-           z = np.logspace(0.0, 200.0, 100)
+           z = np.linspace(0.0, 200.0, 100)
            args = (0.0, 10.0, 1.43e-3, 30.0, 600.0, 300.0, 1.0, 10.0)
            b = np.array([pippard.specular_profile_dl(zz, *args) for zz in z])
            plt.plot(z, b, "-")

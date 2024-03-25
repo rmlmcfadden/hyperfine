@@ -138,6 +138,8 @@ def K_Pippard(
            plt.plot(q, k, "-")
            plt.xlabel("$q$ (nm$^{-1}$)")
            plt.ylabel(r"$K_{\mathrm{Pippard}}(q)$ (nm$^{-2}$)")
+           plt.xscale("log")
+           plt.yscale("log")
            plt.show()
 
     """
@@ -209,6 +211,8 @@ def integrand_diffusive(
            plt.plot(q, id, "-")
            plt.xlabel("$q$ (nm$^{-1}$)")
            plt.ylabel("$I(q)$")
+           plt.xscale("log")
+           plt.yscale("log")
            plt.show()
 
     """
@@ -259,6 +263,8 @@ def integrand_specular_profile(
            plt.plot(q, isp, "-")
            plt.xlabel("$q$ (nm$^{-1}$)")
            plt.ylabel("$I(q)$ (nm)")
+           plt.xscale("log")
+           plt.yscale("log")
            plt.show()
 
     """

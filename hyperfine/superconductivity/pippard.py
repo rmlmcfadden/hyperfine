@@ -18,7 +18,7 @@ def j_0(
     T_c: Annotated[float, 0:None],
     Delta_0: Annotated[float, 0:None],
 ) -> float:
-    """???
+    r"""???
 
     Args:
         T: Absolute temperature (K).
@@ -27,6 +27,21 @@ def j_0(
 
     Returns:
         ???
+
+    Example:
+        .. plot::
+
+           import numpy as np
+           import matplotlib.pyplot as plt
+           from hyperfine.superconductivity import pippard
+
+           T = np.linspace(0.0, 1.0, 100)
+           args = (1.0, 1.43e-3)
+           plt.plot(T, pippard.j_0(T, *args), "-")
+           plt.xlabel("$T / T_{c}$")
+           plt.ylabel(r"$\Delta(T)$ (eV)")
+           plt.show()
+
     """
 
     k_B = constants.value("Boltzmann constant in eV/K")
@@ -49,8 +64,7 @@ def xi_Pippard(
     xi_0: Annotated[float, 0:None],
     alpha: Annotated[float, 0:None] = 1.0,
 ) -> float:
-    """
-    Evaluate the effective Pippard coherence length for a finite electron mean-free-path.
+    r"""Evaluate the effective Pippard coherence length for a finite electron mean-free-path.
 
     Args:
         T: Absolute temperature (K).
@@ -62,6 +76,21 @@ def xi_Pippard(
 
     Returns:
         The effective Pippard coherence length (nm).
+
+    Example:
+        .. plot::
+
+           import numpy as np
+           import matplotlib.pyplot as plt
+           from hyperfine.superconductivity import pippard
+
+           T = np.linspace(0.0, 1.0, 100)
+           args = (1.0, 1.43e-3, 200.0, 50.0)
+           plt.plot(T, pippard.xi_0(T, *args), "-")
+           plt.xlabel("$T / T_{c}$")
+           plt.ylabel(r"$\xi_{0}(T)$ (nm)")
+           plt.show()
+
     """
 
     recip_xi_0 = j_0(T, T_c, Delta_0) / xi_0
@@ -80,8 +109,7 @@ def K_Pippard(
     xi_0: Annotated[float, 0:None],
     alpha: Annotated[float, 0:None] = 1.0,
 ) -> float:
-    """
-    Evaluate the Pippard response function.
+    r"""Evaluate the Pippard response function.
 
     Args:
         q: wavevector (1/nm).
@@ -95,6 +123,21 @@ def K_Pippard(
 
     Returns:
         The Pippard response function K(q) at q.
+
+    Example:
+        .. plot::
+
+           import numpy as np
+           import matplotlib.pyplot as plt
+           from hyperfine.superconductivity import pippard
+
+           q = np.logspace(-4, 4, 200)
+           args = (0.0, 10.0, 1.43e-3, 30.0, 300.0, 40.0)
+           plt.plot(q, pippard.K_Pippard(q, *args), "-")
+           plt.xlabel("$q$ (nm$^{-1}$)")
+           plt.ylabel(r"$K_{\mathrm{Pippard}}(q)$ (nm$^{-2}$)")
+           plt.show()
+
     """
 
     # calculate the temperature-dependent values for the coherence length xi
@@ -134,8 +177,7 @@ def integrand_diffusive(
     xi_0: Annotated[float, 0:None],
     alpha: Annotated[float, 0:None] = 1.0,
 ) -> float:
-    """
-    Integrand for calculating the magnetic penetration depth.
+    """Integrand for calculating the magnetic penetration depth.
 
     The calculation assumes diffuse scattering of electrons at the material's surface.
 
@@ -151,6 +193,21 @@ def integrand_diffusive(
 
     Returns:
         The integrand at a given wavevector q.
+
+    Example:
+        .. plot::
+
+           import numpy as np
+           import matplotlib.pyplot as plt
+           from hyperfine.superconductivity import pippard
+
+           q = np.logspace(-4, 4, 200)
+           args = (0.0, 10.0, 1.43e-3, 30.0, 300.0, 40.0)
+           plt.plot(q, pippard.integrand_diffusive(q, *args), "-")
+           plt.xlabel("$q$ (nm$^{-1}$)")
+           plt.ylabel("$I(q)$")
+           plt.show()
+
     """
 
     K = K_Pippard(q, T, T_c, Delta_0, lambda_L, l, xi_0, alpha)
@@ -185,6 +242,21 @@ def integrand_specular_profile(
 
     Returns:
         The integrand at a given wavevector q.
+
+    Example:
+        .. plot::
+
+           import numpy as np
+           import matplotlib.pyplot as plt
+           from hyperfine.superconductivity import pippard
+
+           q = np.logspace(-4, 4, 200)
+           args = (0.0, 10.0, 1.43e-3, 30.0, 300.0, 40.0)
+           plt.plot(q, pippard.integrand_specular_profile(q, *args), "-")
+           plt.xlabel("$q$ (nm$^{-1}$)")
+           plt.ylabel("$I(q)$ (nm)")
+           plt.show()
+
     """
 
     K = K_Pippard(q, T, T_c, Delta_0, lambda_L, l, xi_0, alpha)
@@ -202,8 +274,7 @@ def specular_profile(
     xi_0: Annotated[float, 0:None],
     alpha: Annotated[float, 0:None] = 1.0,
 ) -> float:
-    """
-    Field screening profile B(z).
+    """Field screening profile B(z).
 
     The calculation assumes specular scattering of electrons at the material's surface.
 
@@ -219,6 +290,21 @@ def specular_profile(
 
     Returns:
         The field screening profile B(z).
+
+    Example:
+        .. plot::
+
+           import numpy as np
+           import matplotlib.pyplot as plt
+           from hyperfine.superconductivity import pippard
+
+           z = np.logspace(0.0, 200.0, 100)
+           args = (0.0, 10.0, 1.43e-3, 30.0, 600.0, 300.0)
+           plt.plot(q, pippard.specular_profile(z, *args), "-")
+           plt.xlabel("$z$ (nm)")
+           plt.ylabel("$B(z)$ (nm)")
+           plt.show()
+
     """
 
     if z == 0.0:
@@ -270,6 +356,21 @@ def specular_profile_dl(
 
     Returns:
         The field screening profile B(z).
+
+    Example:
+        .. plot::
+
+           import numpy as np
+           import matplotlib.pyplot as plt
+           from hyperfine.superconductivity import pippard
+
+           z = np.logspace(0.0, 200.0, 100)
+           args = (0.0, 10.0, 1.43e-3, 30.0, 600.0, 300.0, 1.0, 10.0)
+           plt.plot(q, pippard.specular_profile_dl(z, *args), "-")
+           plt.xlabel("$z$ (nm)")
+           plt.ylabel("$B(z)$ (nm)")
+           plt.show()
+
     """
 
     z_corr = z - dl

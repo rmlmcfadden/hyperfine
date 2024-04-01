@@ -54,8 +54,10 @@ extensions = [
     "matplotlib.sphinxext.plot_directive",
 ]
 
-#
+# autodoc specific flags
 autodoc_default_flags = ["members"]
+
+# autosummary specific flags
 autosummary_generate = True
 
 # napoleon specific flags
@@ -64,6 +66,9 @@ napoleon_numpy_docstring = False
 napoleon_include_init_with_doc = True
 napoleon_include_private_with_doc = True
 napoleon_include_special_with_doc = True
+
+# mathjax specific flags
+mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js"
 
 # matplotlib specific flags
 plot_include_source = True

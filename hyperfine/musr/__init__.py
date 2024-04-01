@@ -27,6 +27,7 @@ def raw_asymmetry(
 
     For a pair of detectors (L)eft and (R)ight, calculate their asymmetry:
     .. math::
+       
        A_{\mathrm{raw}} = \frac{(L - l) - (R - r)}{(L - l) + (R - r)}
 
     where

@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from scipy import constants, integrate, interpolate, special
 from .. import distributions
-from ..superconductivity import pippard
+from ..superconductivity import london, pippard
 
 
 class DepthAveragingCalculator:
@@ -354,8 +354,7 @@ class DepthAveragingCalculatorNL(DepthAveragingCalculator):
             gap_0K_eV: Superconducting gap energy at 0 K (eV).
 
         Returns:
-            The field screening profile at a given depth.
-
+            The field screening profile at a given depth (G).
         """
 
         return (
@@ -406,8 +405,7 @@ class DepthAveragingCalculatorNL(DepthAveragingCalculator):
             gap_0K_eV: Superconducting gap energy at 0 K (eV).
 
         Returns:
-            Integrand for the average magnetic field at a given implantation energy.
-
+            Integrand for the average magnetic field at a given implantation energy (G).
         """
 
         return self.pippard_ms(
@@ -452,8 +450,7 @@ class DepthAveragingCalculatorNL(DepthAveragingCalculator):
             gap_0K_eV: Superconducting gap energy at 0 K (eV).
 
         Returns:
-            The average magnetic field at a given implantation energy.
-
+            The average magnetic field at a given implantation energy (G).
         """
 
         # do the numeric integration using adaptive Gaussian quadrature
@@ -492,7 +489,7 @@ class DepthAveragingCalculatorNL(DepthAveragingCalculator):
     @override
     def __call__(
         self,
-        energy_keV: float,
+        energy_keV: Sequence[float],
         applied_field_G: Annotated[float, 0:None],
         dead_layer_nm: Annotated[float, 0:None],
         london_penetration_depth_nm: Annotated[float, 0:None],
@@ -502,7 +499,7 @@ class DepthAveragingCalculatorNL(DepthAveragingCalculator):
         temperature_K: Annotated[float, 0:None],
         critical_temperature_K: Annotated[float, 0:None],
         gap_0K_eV: Annotated[float, 0:None],
-    ) -> float:
+    ) -> Sequence[float]:
         """Calculate average magnetic field at a given implantation energy.
 
         Functor version!
@@ -521,7 +518,6 @@ class DepthAveragingCalculatorNL(DepthAveragingCalculator):
 
         Returns:
             The average magnetic field at a given implantation energy.
-
         """
 
         # make everything numpy arrays
@@ -540,5 +536,172 @@ class DepthAveragingCalculatorNL(DepthAveragingCalculator):
                 temperature_K,
                 critical_temperature_K,
                 gap_0K_eV,
+            )
+        return results
+
+
+class DepthAveragingCalculatorGLE(DepthAveragingCalculator):
+    """Calculator for convolving a Meissner screening profile with a muon stopping distribution.
+
+    Class for handling the details required for calculating the mean magnetic
+    field at a given muon implantation energy by convolving a Meissner
+    screening profile with the corresponding stopping distribution.
+
+    This instance assumes local electrodynamics following the generalized
+    London equation (GLE).
+    """
+
+    def __init__(
+        self,
+        file_name: str,
+        interpolation: str = "linear",
+    ) -> None:
+        """Constructor.
+
+        Args:
+            file_name: Name of the CSV containing the stopping profile coefficients.
+            interpolation: Type of interpolation scheme used for the stopping profile coefficients.
+        """
+
+        # generalized London equation (GLE) solver
+        self.gle = london.GLESolver()
+
+        # initialize from the base class
+        super().__init__(file_name, interpolation)
+
+    def mean_field_integrand(
+        self,
+        z: float,
+        energy_keV: float,
+        applied_field_G: Annotated[float, 0:None],
+        dead_layer_nm: Annotated[float, 0:None],
+        surface_penetration_depth_nm: Annotated[float, 0:None],
+        bulk_penetration_depth_nm: Annotated[float, 0:None],
+        diffusion_length_nm: Annotated[float, 0:None],
+        demagnetization_factor: Annotated[float, 0:1] = 0.0,
+    ) -> float:
+        """Integrand for calculating the mean magnetic field at a given implantation energy.
+
+        Args:
+            z: Depth (nm).
+            energy_keV: Implantation energy (keV).
+            applied_field_G: Applied magnetic field (G).
+            dead_layer_nm: Non-superconducting dead layer (nm).
+            surface_penetration_depth_nm: Magnetic penetration depth at the surface (nm).
+            bulk_penetration_depth_nm: Magnetic penetration depth in the bulk (nm).
+            diffusion_length_nm: Length of inhomogenous defect region (nm).
+            demagnetization_factor: Effective demagnetization factor.
+
+        Returns:
+            Integrand for the average magnetic field at a given implantation energy (G).
+        """
+
+        return self.gle.screening_profile(
+            z,
+            applied_field_G,
+            dead_layer_nm,
+            surface_penetration_depth_nm,
+            bulk_penetration_depth_nm,
+            diffusion_length_nm,
+            demagnetization_factor,
+        ) * self.stopping_distribution(z, energy_keV)
+
+    @override
+    def calculate_mean_field(
+        self,
+        energy_keV: float,
+        applied_field_G: Annotated[float, 0:None],
+        dead_layer_nm: Annotated[float, 0:None],
+        surface_penetration_depth_nm: Annotated[float, 0:None],
+        bulk_penetration_depth_nm: Annotated[float, 0:None],
+        diffusion_length_nm: Annotated[float, 0:None],
+        demagnetization_factor: Annotated[float, 0:1] = 0.0,
+    ) -> float:
+        """Calculate average magnetic field at a given implantation energy.
+
+        Args:
+            energy_keV: Implantation energy (keV).
+            applied_field_G: Applied magnetic field (G).
+            dead_layer_nm: Non-superconducting dead layer (nm).
+            surface_penetration_depth_nm: Magnetic penetration depth at the surface (nm).
+            bulk_penetration_depth_nm: Magnetic penetration depth in the bulk (nm).
+            diffusion_length_nm: Length of inhomogenous defect region (nm).
+            demagnetization_factor: Effective demagnetization factor.
+
+        Returns:
+            The average magnetic field at a given implantation energy (G).
+        """
+
+        # do the numeric integration using adaptive Gaussian quadrature
+        # https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.quad.html
+        result, _ = integrate.quad(
+            self.mean_field_integrand,
+            0.0,  # lower integration limit
+            max(  # upper integration limit
+                np.max(self.z_max_1(energy_keV)), np.max(self.z_max_2(energy_keV))
+            ),
+            args=(
+                energy_keV,
+                applied_field_G,
+                dead_layer_nm,
+                surface_penetration_depth_nm,
+                bulk_penetration_depth_nm,
+                diffusion_length_nm,
+                demagnetization_factor,
+            ),
+            epsabs=np.sqrt(np.finfo(float).eps),  # absolute error tolerance
+            epsrel=np.sqrt(np.finfo(float).eps),  # relative error tolerance
+            limit=np.iinfo(np.int32).max,  # maximum number of subintervals
+            points=[  # potential singularities/discontinuities in the integrand
+                0.0,
+                dead_layer_nm,
+                self.z_max_1(energy_keV),
+                self.z_max_2(energy_keV),
+            ],
+        )
+
+        return result
+
+    @override
+    def __call__(
+        self,
+        energy_keV: Sequence[float],
+        applied_field_G: Annotated[float, 0:None],
+        dead_layer_nm: Annotated[float, 0:None],
+        surface_penetration_depth_nm: Annotated[float, 0:None],
+        bulk_penetration_depth_nm: Annotated[float, 0:None],
+        diffusion_length_nm: Annotated[float, 0:None],
+        demagnetization_factor: Annotated[float, 0:1] = 0.0,
+    ) -> float:
+        """Calculate average magnetic field at a given implantation energy.
+
+        Functor version!
+
+        Args:
+            energy_keV: Implantation energy (keV).
+            applied_field_G: Applied magnetic field (G).
+            dead_layer_nm: Non-superconducting dead layer (nm).
+            surface_penetration_depth_nm: Magnetic penetration depth at the surface (nm).
+            bulk_penetration_depth_nm: Magnetic penetration depth in the bulk (nm).
+            diffusion_length_nm: Length of inhomogenous defect region (nm).
+            demagnetization_factor: Effective demagnetization factor.
+
+        Returns:
+            The average magnetic field at a given implantation energy (G).
+        """
+
+        # make everything numpy arrays
+        energy_keV = np.asarray(energy_keV)
+        results = np.empty(energy_keV.size)
+
+        for i, e_keV in enumerate(energy_keV):
+            results[i] = self.calculate_mean_field(
+                e_keV,
+                applied_field_G,
+                dead_layer_nm,
+                surface_penetration_depth_nm,
+                bulk_penetration_depth_nm,
+                diffusion_length_nm,
+                demagnetization_factor,
             )
         return results

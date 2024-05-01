@@ -151,38 +151,35 @@ class GLESolver:
         _lambda_0: Magnetic penetration depth in the bulk (nm).
         _delta: Diffusion length of the impurity layer (nm).
         _sol: Object encapsulating the solver's solution.
-
     """
 
     def __init__(
         self,
-        x_nodes: Sequence[float] = np.linspace(0.0, 1000.0, num=1000),
-        lambda_s: Annotated[float, 0:None] = 100.0,
-        lambda_0: Annotated[float, 0:None] = 39.0,
-        delta: Annotated[float, 0:None] = 50.0,
+        x_nodes_min: float = 0.0,
+        x_nodes_max: float = 1000.0,
+        x_nodes_num: int = 1001,
     ) -> None:
         """Constructor for the GLE Solver.
 
         Args:
-            x_nodes: x-values used as the initial mesh by the solver.
-            lambda_s: Magnetic penetration depth at the surface (nm).
-            lambda_0: Magnetic penetration depth in the bulk (nm).
-            delta: Diffusion length of the impurity layer (nm).
-
+            x_nodes_min: Minimum of the x-values used as the initial mesh by the solver.
+            x_nodes_max: Maximum of the x-values used as the initial mesh by the solver.
+            x_nodes_num: Number of x-values used as the initial mesh by the solver.
         """
 
-        # assign the values
-        self._x_nodes = x_nodes
-        self._lambda_s = lambda_s
-        self._lambda_0 = lambda_0
-        self._delta = delta
+        # create the x-nodes
+        self._x_nodes = np.linspace(x_nodes_min, x_nodes_max, num=x_nodes_num)
 
-        # create the initial guesses for the solver
+        # assign some internal variables with nonsensical values; this is to
+        # diminish any likelihood of corresponding to a user's "real" input,
+        # which is important for the arg check done in self.solve
+        self._lambda_s = -1.0
+        self._lambda_0 = -1.0
+        self._delta = -1.0
+
+        # create an empty initial guess for the solver
+        # values will be updated dynamically when calling self.solve
         self._y_guess = np.zeros((2, self._x_nodes.size))
-        self._y_guess[0] = np.exp(-self._x_nodes / self._lambda_0)
-        self._y_guess[1] = (-1.0 / self._lambda_0) * np.exp(
-            -self._x_nodes / self._lambda_0
-        )
 
     def _lambda(
         self,
@@ -303,7 +300,7 @@ class GLESolver:
         lambda_s: Annotated[float, 0:None],
         lambda_0: Annotated[float, 0:None],
         delta: Annotated[float, 0:None],
-        tolerance: float = 1e3 * np.finfo(float).eps,
+        tolerance: float = np.sqrt(np.finfo(float).eps),  # 1e3 * np.finfo(float).eps,
         max_x_nodes: int = np.iinfo(np.int32).max,
     ) -> None:
         """Solve the GLE numerically.
@@ -314,29 +311,42 @@ class GLESolver:
             delta: Diffusion length of the impurity layer (nm).
             tolerance: Convergence criteria for the solver.
             max_x_nodes: Maximum number of x nodes used by the solver.
-
         """
 
-        # assign the arguments to data members
-        self._lambda_s = lambda_s
-        self._lambda_0 = lambda_0
-        self._delta = delta
+        # collect the function/class arguments for comparison
+        fcn_args = (lambda_s, lambda_0, delta)
+        cls_vals = (self._lambda_s, self._lambda_0, self._delta)
 
-        # solve the system of equations using boundary conditions and save the result
-        self._sol = integrate.solve_bvp(
-            self._gle_derivs,
-            self._bc,
-            self._x_nodes,
-            self._y_guess,
-            p=None,
-            S=None,
-            fun_jac=None,
-            bc_jac=None,
-            tol=tolerance,
-            max_nodes=max_x_nodes,
-            verbose=0,
-            # bc_tol=np.sqrt(np.finfo(float).eps),
-        )
+        # check if a solution has already been generated for the same inputs
+        if fcn_args != cls_vals:
+
+            # assign the arguments to data members
+            self._lambda_s = lambda_s
+            self._lambda_0 = lambda_0
+            self._delta = delta
+
+            # dynamically create the initial guesses for the solver
+            self._y_guess = np.zeros((2, self._x_nodes.size))
+            self._y_guess[0] = np.exp(-self._x_nodes / self._lambda_0)
+            self._y_guess[1] = (-1.0 / self._lambda_0) * np.exp(
+                -self._x_nodes / self._lambda_0
+            )
+
+            # solve the system of equations using boundary conditions and save the result
+            self._sol = integrate.solve_bvp(
+                self._gle_derivs,
+                self._bc,
+                self._x_nodes,
+                self._y_guess,
+                p=None,
+                S=None,
+                fun_jac=None,
+                bc_jac=None,
+                tol=tolerance,
+                max_nodes=max_x_nodes,
+                verbose=0,
+                # bc_tol=np.sqrt(np.finfo(float).eps),
+            )
 
     def screening_profile(
         self,

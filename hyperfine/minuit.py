@@ -69,10 +69,10 @@ def covariance2dict(minuit: Minuit) -> dict:
             # for each parameter, create an empty dictionary...
             covariance[par1] = {}
             # loop over all fit parameters
-            for par2 in m.parameters:
+            for par2 in minuit.parameters:
                 # ...to be filled with the covariance for each
                 # parameter pair combination
-                covariance[par1][par2] = m.covariance[par1, par2]
+                covariance[par1][par2] = minuit.covariance[par1, par2]
 
     # return the covariance matrix
     return covariance

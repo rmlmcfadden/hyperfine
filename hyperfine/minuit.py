@@ -45,8 +45,44 @@ def minos2dict(minuit: Minuit) -> dict:
     return minos
 
 
+def covariance2dict(minuit: Minuit) -> dict:
+    """Convert the covariance matrix to a serializable dictionary.
+
+    Convert the covariance matrix (i.e., the MIGRAD or HESSE errors) determined
+    by the MINUIT2 minimizer to a *serializable* dictionary (i.e., one that is
+    compatible with JSON).
+
+    Args:
+        minuit: The ``iminuit.Minuit`` object.
+
+    Returns:
+        A serializable dictionary containing the covariance matrix (i.e., errors computed by MIGRAD or HESSE).
+    """
+
+    # empty dictionary to hold the matrix
+    covariance = {}
+
+    # check if the covariance matrix exists
+    if minuit.covariance is not None:
+        # loop over all fit parameters
+        for par1 in minuit.parameters:
+            # for each parameter, create an empty dictionary...
+            covariance[par1] = {}
+            # loop over all fit parameters
+            for par2 in m.parameters:
+                # ...to be filled with the covariance for each
+                # parameter pair combination
+                covariance[par1][par2] = m.covariance[par1, par2]
+
+    # return the covariance matrix
+    return covariance
+
+
 def minuit2json(minuit: Minuit, filename: str) -> None:
-    """Serialize fitting results from an `iminuit.Minuit` object to a JSON file.
+    """Serialize fitting results from an ``iminuit.Minuit`` object to a JSON file.
+
+    Serialization includes data for: ``values``, ``errors``, ``limits``,
+    ``fixed``, ``covariance``, and ``merrors``.
 
     Args:
         minuit: The ``iminuit.Minuit`` object.
@@ -59,6 +95,7 @@ def minuit2json(minuit: Minuit, filename: str) -> None:
         "errors": minuit.errors.to_dict(),
         "limits": minuit.limits.to_dict(),
         "fixed": minuit.fixed.to_dict(),
+        "covariance": covariance2dict(minuit),
         "merrors": minos2dict(minuit),
     }
 
@@ -68,7 +105,10 @@ def minuit2json(minuit: Minuit, filename: str) -> None:
 
 
 def json2minuit(minuit: Minuit, filename: str) -> None:
-    """De-serialize fitting results from a JSON file to an `iminuit.Minuit` object.
+    """De-serialize fitting results from a JSON file to an ``iminuit.Minuit`` object.
+
+    De-serialization includes data for: ``values``, ``errors``, ``limits``,
+    and ``fixed`` (``covariance`` and ``merrors`` are not yet implemented).
 
     Args:
         minuit: The ``iminuit.Minuit`` object.
@@ -85,7 +125,8 @@ def json2minuit(minuit: Minuit, filename: str) -> None:
             for key, value in results[quantity].items():
                 minuit.__getattribute__(quantity)[key] = value
 
-    # TODO: restore the minos errors
+    # TODO: restore the covariance matrix?
+    # TODO: restore the minos errors?
 
 
 class GenericLeastSquares3D:

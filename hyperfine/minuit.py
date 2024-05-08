@@ -78,6 +78,41 @@ def covariance2dict(minuit: Minuit) -> dict:
     return covariance
 
 
+def correlation2dict(minuit: Minuit) -> dict:
+    """Convert the correlation matrix to a serializable dictionary.
+
+    Convert the correlation matrix (i.e., derived from the MIGRAD or HESSE errors)
+    determined by the MINUIT2 minimizer to a *serializable* dictionary
+    (i.e., one that is compatible with JSON).
+
+    Args:
+        minuit: The ``iminuit.Minuit`` object.
+
+    Returns:
+        A serializable dictionary containing the correlation matrix.
+    """
+
+    # empty dictionary to hold the matrix
+    correlation = {}
+
+    # check if the covariance matrix exists
+    if minuit.covariance is not None:
+        # loop over all fit parameters
+        for par1 in minuit.parameters:
+            # for each parameter, create an empty dictionary...
+            correlation[par1] = {}
+            # loop over all fit parameters
+            for par2 in minuit.parameters:
+                # ...to be filled with the (normalized) covariance for each
+                # parameter pair combination
+                correlation[par1][par2] = minuit.covariance[par1, par2] / np.sqrt(
+                    minuit.covariance[par1, par1] * minuit.covariance[par2, par2]
+                )
+
+    # return the covariance matrix
+    return correlation
+
+
 def fmin2dict(minuit: Minuit) -> dict:
     """Convert the metadata about the cost function minimum to a serializable dictionary.
 
@@ -116,7 +151,8 @@ def minuit2json(minuit: Minuit, filename: str) -> None:
     """Serialize fitting results from an ``iminuit.Minuit`` object to a JSON file.
 
     Serialization includes data for: ``values``, ``errors``, ``limits``,
-    ``fixed``, ``covariance``, ``merrors``, and ``fmin``.
+    ``fixed``, ``covariance``, ``merrors``, and ``fmin``. Parameter correlations
+    (derived from ``covariance``) are also included.
 
     Args:
         minuit: The ``iminuit.Minuit`` object.
@@ -130,6 +166,7 @@ def minuit2json(minuit: Minuit, filename: str) -> None:
         "limits": minuit.limits.to_dict(),
         "fixed": minuit.fixed.to_dict(),
         "covariance": covariance2dict(minuit),
+        "correlation": correlation2dict(minuit),
         "merrors": minos2dict(minuit),
         "fmin": fmin2dict(minuit),
     }

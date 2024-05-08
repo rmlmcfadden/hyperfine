@@ -78,11 +78,45 @@ def covariance2dict(minuit: Minuit) -> dict:
     return covariance
 
 
+def fmin2dict(minuit: Minuit) -> dict:
+    """Convert the metadata about the cost function minimum to a serializable dictionary.
+
+    Convert the contents of ``iminuit.Minuit.fmin`` (i.e, an ``iminuit.util.FMin`` object)
+    to a *serializable* dictionary (i.e., one that is compatible with JSON).
+    The ``iminuit.util.FMin`` object provides detailed metadata about the function minimum
+    (e.g., the value of the cost function, validity of the minimum, etc.).
+    The metadata is useful for checking what happened when a fit didn't converge.
+
+    Args:
+        minuit: The ``iminuit.Minuit`` object.
+
+    Returns:
+        A serializable dictionary containing the metadata about the cost function minimum.
+    """
+
+    # create an empty dictionary
+    fmin = {}
+
+    if minuit.fmin is None:
+        # return the empty dictionary if the cost function has not been minimized
+        return fmin
+
+    else:
+        # populate the dictionary with all of fmin's public attributes
+        for key in sorted(dir(minuit.fmin)):
+            if key.startswith("_"):
+                continue
+            value = getattr(minuit.fmin, key)
+            fmin[key] = value
+
+        return fmin
+
+
 def minuit2json(minuit: Minuit, filename: str) -> None:
     """Serialize fitting results from an ``iminuit.Minuit`` object to a JSON file.
 
     Serialization includes data for: ``values``, ``errors``, ``limits``,
-    ``fixed``, ``covariance``, and ``merrors``.
+    ``fixed``, ``covariance``, ``merrors``, and ``fmin``.
 
     Args:
         minuit: The ``iminuit.Minuit`` object.
@@ -97,6 +131,7 @@ def minuit2json(minuit: Minuit, filename: str) -> None:
         "fixed": minuit.fixed.to_dict(),
         "covariance": covariance2dict(minuit),
         "merrors": minos2dict(minuit),
+        "fmin": fmin2dict(minuit),
     }
 
     # write the results dictionary to a file

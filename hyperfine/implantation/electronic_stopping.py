@@ -21,13 +21,13 @@ def proton_stopping_cross_section_high_energy(
 
     Args:
         T: Scaled projectile energy (keV).
-        A_2: Empirical stopping coefficient :math:`A_{2}` (10:sup:\ `-15` eV cm:sup:\ `2` atom:sup:\ `-1` keV:sup:\ `-0.45`).
-        A_3: Empirical stopping coefficient :math:`A_{3}` (10:sup:\ `-15` eV cm:sup:\ `2` atom:sup:\ `-1` keV).
+        A_2: Empirical stopping coefficient :math:`A_{2}` (10\ :sup:`-15` eV cm\ :sup:`2` atom\ :sup:`-1` keV\ :sup:`-0.45`\ ).
+        A_3: Empirical stopping coefficient :math:`A_{3}` (10\ :sup:`-15` eV cm\ :sup:`2` atom\ :sup:`-1` keV).
         A_4: Empirical stopping coefficient :math:`A_{4}` (keV).
-        A_5: Empirical stopping coefficient :math:`A_{5}` (keV:sup:\ `-1`).
+        A_5: Empirical stopping coefficient :math:`A_{5}` (keV\ :sup:`-1`\ ).
 
     Returns:
-        The proton stopping cross section at scaled energy :math:`T` (10:sup:\ `-15` eV cm:sup:\ `2` atom:sup:\ `-1`).
+        The proton stopping cross section at scaled energy :math:`T` (10\ :sup:`-15` eV cm\ :sup:`2` atom\ :sup:`-1`\ ).
     """
 
     e_low = A_2 * np.power(T, 0.45)
@@ -49,10 +49,10 @@ def proton_stopping_cross_section_low_energy(
 
     Args:
         T: Scaled projectile energy (keV).
-        A_1: Empirical stopping coefficient :math:`A_{2}` (10:sup:\ `-15` eV cm:sup:\ `2` atom:sup:\ `-1` keV:sup:\ `-0.5`).
+        A_1: Empirical stopping coefficient :math:`A_{2}` (10\ :sup:`-15` eV cm\ :sup:`2` atom\ :sup:`-1` keV\ :sup:`-0.5`\ ).
 
     Returns:
-        The proton stopping cross section at scaled energy :math:`T` (10:sup:\ `-15` eV cm:sup:\ `2` atom:sup:\ `-1`).
+        The proton stopping cross section at scaled energy :math:`T` (10\ :sup:`-15` eV cm\ :sup:`2` atom\ :sup:`-1`\ ).
     """
 
     return A_1 * np.sqrt(T)
@@ -76,14 +76,14 @@ def proton_stopping_cross_section(
 
     Args:
         T: Scaled projectile energy (keV).
-        A_1: Empirical stopping coefficient :math:`A_{2}` (10:sup:\ `-15` eV cm:sup:\ `2` atom:sup:\ `-1` keV:sup:\ `-0.5`).
-        A_2: Empirical stopping coefficient :math:`A_{2}` (10:sup:\ `-15` eV cm:sup:\ `2` atom:sup:\ `-1` keV:sup:\ `-0.45`).
-        A_3: Empirical stopping coefficient :math:`A_{3}` (10:sup:\ `-15` eV cm:sup:\ `2` atom:sup:\ `-1` keV).
+        A_1: Empirical stopping coefficient :math:`A_{2}` (10\ :sup:`-15` eV cm\ :sup:`2` atom\ :sup:`-1` keV\ :sup:`-0.5`\ ).
+        A_2: Empirical stopping coefficient :math:`A_{2}` (10\ :sup:`-15` eV cm\ :sup:`2` atom\ :sup:`-1` keV\ :sup:`-0.45`\ ).
+        A_3: Empirical stopping coefficient :math:`A_{3}` (10\ :sup:`-15` eV cm\ :sup:`2` atom\ :sup:`-1` keV).
         A_4: Empirical stopping coefficient :math:`A_{4}` (keV).
-        A_5: Empirical stopping coefficient :math:`A_{5}` (keV:sup:\ `-1`).
+        A_5: Empirical stopping coefficient :math:`A_{5}` (keV\ :sup:`-1`\ ).
 
     Returns:
-        The proton stopping cross section at scaled energy :math:`T` (10:sup:\ `-15` eV cm:sup:\ `2` atom:sup:\ `-1`).
+        The proton stopping cross section at scaled energy :math:`T` (10\ :sup:`-15` eV cm\ :sup:`2` atom\ :sup:`-1`\ ).
     """
 
     return np.piecewise(
@@ -107,15 +107,15 @@ def calculate_A_1(
     A_4: Annotated[float, 0:None],
     A_5: Annotated[float, 0:None],
 ) -> float:
-    """Calculate the empirical stopping coefficient :math:`A_{1}` using the other four :math:`A_{i}`s.
+    """Calculate the empirical stopping coefficient :math:`A_{1}` using the other four :math:`A_{i}`\ s.
 
     Useful when there is no data in the 'low-energy' region (i.e., when :math:`T < 10` keV) and smooth continuity of the Varelas-Biersack expression is desired.
 
     Args:
-        A_2: Empirical stopping coefficient :math:`A_{2}` (10:sup:\ `-15` eV cm:sup:\ `2` atom:sup:\ `-1` keV:sup:\ `-0.45`).
-        A_3: Empirical stopping coefficient :math:`A_{3}` (10:sup:\ `-15` eV cm:sup:\ `2` atom:sup:\ `-1` keV).
+        A_2: Empirical stopping coefficient :math:`A_{2}` (10\ :sup:`-15` eV cm\ :sup:`2` atom\ :sup:`-1` keV\ :sup:`-0.45`\ ).
+        A_3: Empirical stopping coefficient :math:`A_{3}` (10\ :sup:`-15` eV cm\ :sup:`2` atom\ :sup:`-1` keV).
         A_4: Empirical stopping coefficient :math:`A_{4}` (keV).
-        A_5: Empirical stopping coefficient :math:`A_{5}` (keV:sup:\ `-1`).
+        A_5: Empirical stopping coefficient :math:`A_{5}` (keV\ :sup:`-1`\ ).
 
     Returns:
         The empirical stopping coefficient :math:`A_{1}` (10:sup:\ `-15` eV cm:sup:\ `2` atom:sup:\ `-1` keV:sup:\ `-0.5`).
@@ -138,31 +138,31 @@ def proton_stopping_cross_section4(
 ) -> Sequence[float]:
     r"""Low-energy proton electronic stopping cross section using four :math:`A_{i}`s.
 
-    Empirical Varelas-Biersack parameterization of the proton electronic stopping cross section for scaled energies :math:`T` around the stopping power maximum. This version uses four of the five :math:`A_{i}`s (:math:`i = {2,3,4,5}`) and implicitly determines :math:`A_{1}` from them. This alternative parameterization is useful when fitting stopping cross section data without any measurements in the 'low-energy' portion (i.e., when :math:`T < 10` keV).
+    Empirical Varelas-Biersack parameterization of the proton electronic stopping cross section for scaled energies :math:`T` around the stopping power maximum. This version uses four of the five :math:`A_{i}`\ s (\ :math:`i = {2,3,4,5}`\ ) and implicitly determines :math:`A_{1}` from them. This alternative parameterization is useful when fitting stopping cross section data without any measurements in the 'low-energy' portion (i.e., when :math:`T < 10` keV).
 
     See Eqs. (3.1a)-(3.1c) & (3.2) in: https://doi.org/10.1093/jicru_os25.2.18
 
     Args:
         T: Scaled projectile energy (keV).
-        A_2: Empirical stopping coefficient :math:`A_{2}` (10:sup:\ `-15` eV cm:sup:\ `2` atom:sup:\ `-1` keV:sup:\ `-0.45`).
-        A_3: Empirical stopping coefficient :math:`A_{3}` (10:sup:\ `-15` eV cm:sup:\ `2` atom:sup:\ `-1` keV).
+        A_2: Empirical stopping coefficient :math:`A_{2}` (10\ :sup:`-15` eV cm\ :sup:`2` atom\ :sup:`-1` keV\ :sup:`-0.45`\ ).
+        A_3: Empirical stopping coefficient :math:`A_{3}` (10\ :sup:`-15` eV cm\ :sup:`2` atom\ :sup:`-1` keV).
         A_4: Empirical stopping coefficient :math:`A_{4}` (keV).
-        A_5: Empirical stopping coefficient :math:`A_{5}` (keV:sup:\ `-1`).
+        A_5: Empirical stopping coefficient :math:`A_{5}` (keV\ :sup:`-1`\ ).
 
     Returns:
-        The proton stopping cross section at scaled energy :math:`T` (10:sup:\ `-15` eV cm:sup:\ `2` atom:sup:\ `-1`).
+        The proton stopping cross section at scaled energy :math:`T` (10\ :sup:`-15` eV cm\ :sup:`2` atom\ :sup:`-1`\ ).
 
     Example:
         .. plot::
-        
+
            import numpy as np
            import matplotlib.pyplot as plt
            from hyperfine.implantation.electronic_stopping import proton_stopping_cross_section4
-           
+
            A = (6.73, 1.03e4, 2.8e2, 3.9e-3)
            T = np.logspace(0, 4, 200)
            S_e = proton_stopping_cross_section4(T, *A)
-           
+
            plt.plot(T, S_e, "-")
            plt.xlabel("$T$ (keV)")
            plt.ylabel("$S_{e}$ ($10^{-15}$ eV cm$^{2} atom$^{-1}$)")

@@ -153,18 +153,20 @@ def proton_stopping_cross_section4(
         The proton stopping cross section at scaled energy :math:`T` (10:sup:\ `-15` eV cm:sup:\ `2` atom:sup:\ `-1`).
 
     Example:
-        import numpy as np
-        import matplotlib.pyplot as plt
-        from hyperfine.implantation.electronic_stopping import proton_stopping_cross_section4
-
-        A = (6.73, 1.03e4, 2.8e2, 3.9e-3)
-        T = np.logspace(0, 4, 200)
-        S_e = proton_stopping_cross_section4(T, *A)
-
-        plt.plot(T, S_e, "-")
-        plt.xlabel("$T$ (keV)")
-        plt.ylabel("$S_{e}$ ($10^{-15}$ eV cm$^{2} atom$^{-1}$)")
-        plt.show()
+        .. plot::
+        
+           import numpy as np
+           import matplotlib.pyplot as plt
+           from hyperfine.implantation.electronic_stopping import proton_stopping_cross_section4
+           
+           A = (6.73, 1.03e4, 2.8e2, 3.9e-3)
+           T = np.logspace(0, 4, 200)
+           S_e = proton_stopping_cross_section4(T, *A)
+           
+           plt.plot(T, S_e, "-")
+           plt.xlabel("$T$ (keV)")
+           plt.ylabel("$S_{e}$ ($10^{-15}$ eV cm$^{2} atom$^{-1}$)")
+           plt.show()
     """
 
     # calculate the "missing" coefficent

@@ -45,6 +45,7 @@ dependencies = [
 	"iminuit>=2.24.0",
 	"pandas>=1.5.0",
 	"joblib>=1.2.0",
+	"jax>=0.4.30",
 ]
 dynamic = [
     "version",

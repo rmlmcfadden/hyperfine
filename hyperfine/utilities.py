@@ -98,9 +98,9 @@ def split(
 
            handles_labels = ax.get_legend_handles_labels()
 
-           l_1 = ax.legend(*split(handles_labels, "axvspan"))
+           l_1 = ax.legend(*split(handles_labels, "axvspan"), loc="upper left")
            ax.add_artist(l_1)
-           l_2 = ax.legend(*split(handles_labels, "plot"))
+           l_2 = ax.legend(*split(handles_labels, "plot"), loc="lower right")
 
            plt.show()
     """

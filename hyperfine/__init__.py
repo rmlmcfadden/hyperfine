@@ -8,4 +8,5 @@ from . import implantation
 from . import minuit
 from . import musr
 from . import superconductivity
+from . import utilities
 from ._version import __version__

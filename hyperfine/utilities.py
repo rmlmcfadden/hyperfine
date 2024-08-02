@@ -109,6 +109,7 @@ def split(
     # TODO: add more types!
     types = dict(
         plot=matplotlib.lines.Line2D,
+        errorbar=matplotlib.container.ErrorbarContainer,
         scatter=matplotlib.collections.PathCollection,
         axvspan=matplotlib.patches.Polygon,
     )

@@ -118,7 +118,7 @@ def calculate_A_1(
         A_5: Empirical stopping coefficient :math:`A_{5}` (keV\ :sup:`-1`\ ).
 
     Returns:
-        The empirical stopping coefficient :math:`A_{1}` (10:sup:\ `-15` eV cm:sup:\ `2` atom:sup:\ `-1` keV:sup:\ `-0.5`).
+        The empirical stopping coefficient :math:`A_{1}` (10\ :sup:`-15` eV cm\ :sup:`2` atom\ :sup:`-1` keV\ :sup:`-0.5`).
     """
 
     # crossover point between the high- and low-energy regions.

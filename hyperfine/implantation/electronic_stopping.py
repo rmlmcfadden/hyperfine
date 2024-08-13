@@ -165,7 +165,8 @@ def proton_stopping_cross_section4(
 
            plt.plot(T, S_e, "-")
            plt.xlabel("$T$ (keV)")
-           plt.ylabel("$S_{e}$ ($10^{-15}$ eV cm$^{2} atom$^{-1}$)")
+           plt.ylabel("$S_{e}$ ($10^{-15}$ eV cm$^{2}$ atom$^{-1}$)")
+           plt.xscale("log")
            plt.show()
     """
 

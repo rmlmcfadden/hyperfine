@@ -11,7 +11,7 @@ def modified_beta_pdf(
     alpha: Annotated[float, 0:None],
     beta: Annotated[float, 0:None],
     z_max: Annotated[float, 0:None],
-) -> float:
+) -> Sequence[float]:
     r"""Probability density function for a modified beta distribution.
 
     This modified form extends the beta distribution's domain from :math:`z \in [0, 1]` to :math:`z \in [0, z_{\mathrm{max}}]`.
@@ -44,12 +44,12 @@ def modified_beta_pdf(
     )
 
 
-def modified_beta_cdf(
+def _modified_beta_cdf(
     z: Sequence[float],
     alpha: Annotated[float, 0:None],
     beta: Annotated[float, 0:None],
     z_max: Annotated[float, 0:None],
-) -> float:
+) -> Sequence[float]:
     """Cumulative density function for a modified beta distribution.
 
     This modified form extends the beta distribution's domain from :math:`z \in [0, 1]` to :math:`z \in [0, z_{\mathrm{max}}]`.
@@ -79,6 +79,33 @@ def modified_beta_cdf(
     )
 
     return integral
+
+
+def modified_beta_cdf(
+    z: Sequence[float],
+    alpha: Annotated[float, 0:None],
+    beta: Annotated[float, 0:None],
+    z_max: Annotated[float, 0:None],
+) -> Sequence[float]:
+    """Cumulative density function for a modified beta distribution.
+
+    This modified form extends the beta distribution's domain from :math:`z \in [0, 1]` to :math:`z \in [0, z_{\mathrm{max}}]`.
+
+    Args:
+        z: Position.
+        alpha: First shape parameter.
+        beta: Second shape parameter.
+        z_max: Upper bounds of the domain.
+
+    Returns:
+        The cumulative probability density up to position z.
+    """
+
+    cdf = np.empty(len(z))
+    for i, zz in enumerate(z):
+        cdf[i] = _modified_beta_cdf(zz, alpha, beta, z_max)
+
+    return cdf
 
 
 def modified_beta_2_pdf(
@@ -114,7 +141,7 @@ def modified_beta_2_pdf(
     ) * modified_beta_pdf(z, alpha_2, beta_2, z_max_2)
 
 
-def modified_beta_2_cdf(
+def _modified_beta_2_cdf(
     z: float,
     alpha_1: Annotated[float, 0:None],
     beta_1: Annotated[float, 0:None],
@@ -123,7 +150,7 @@ def modified_beta_2_cdf(
     alpha_2: Annotated[float, 0:None],
     beta_2: Annotated[float, 0:None],
     z_max_2: Annotated[float, 0:None],
-) -> Sequence[float]:
+) -> float:
     """Cumulative density function for a weighted sum of two modified beta distributions.
 
     This modified form extends the beta distribution's domain from :math:`z \in [0, 1]` to :math:`z \in [0, \max (z_{\mathrm{max},1}, z_{\mathrm{max},2})]`.
@@ -158,6 +185,43 @@ def modified_beta_2_cdf(
     )
 
     return integral
+
+
+def modified_beta_2_cdf(
+    z: Sequence[float],
+    alpha_1: Annotated[float, 0:None],
+    beta_1: Annotated[float, 0:None],
+    z_max_1: Annotated[float, 0:None],
+    fraction_1: Annotated[float, 0:1],
+    alpha_2: Annotated[float, 0:None],
+    beta_2: Annotated[float, 0:None],
+    z_max_2: Annotated[float, 0:None],
+) -> Sequence[float]:
+    """Cumulative density function for a weighted sum of two modified beta distributions.
+
+    This modified form extends the beta distribution's domain from :math:`z \in [0, 1]` to :math:`z \in [0, \max (z_{\mathrm{max},1}, z_{\mathrm{max},2})]`.
+
+    Args:
+        z: Position.
+        alpha_1: First shape parameter of the first component.
+        beta_1: Second shape parameter of the first component.
+        z_max_1: Upper bounds of the domain of the first component.
+        fraction_1: Fractional weight of the first component.
+        alpha_2: First shape parameter of the second component.
+        beta_2: Second shape parameter of the second component.
+        z_max_2: Upper bounds of the domain of the second component.
+
+    Returns:
+        The cumulative probability density up to position z.
+    """
+
+    cdf = np.empty(len(z))
+    for i, zz in enumerate(z):
+        cdf[i] = _modified_beta_2_cdf(
+            zz, alpha_1, beta_1, z_max_1, fraction_1, alpha_2, beta_2, z_max_2
+        )
+
+    return cdf
 
 
 def modified_beta_mean(
